@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset='utf-8'>
+	<meta http-equiv='X-UA-Compatible' content='IE=edge'>
+	<title>Pystorm Preview</title>
+	<meta name='viewport' content='width=device-width, initial-scale=1'>
+	<script src='three.min.js'></script>
+	<script src='OrbitControls.js'></script>
+	<script src='molang.umd.js'></script>
+	<script src='tinycolor-min.js'></script>
+	<script src='wintersky.umd.js'></script>
+	<script src='main.js'></script>
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+		}
+		body {
+			position: fixed;
+			height: 100%;
+			width: 100%;
+			font-family: Arial, Helvetica, sans-serif;
+		}
+		#hud {
+			position: absolute;
+			top: 0;
+			width: 100%;
+			box-shadow: 0 0 5px #00000050;
+			padding: 10px;
+			background: white;
+		}
+		select {
+			padding: 5px;
+		}
+	</style>
+</head>
+<body>
+	<canvas id="preview"></canvas>
+	<script>
+		initializeApp()
+	</script>
+</body>
+</html>
