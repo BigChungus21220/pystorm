@@ -1,7 +1,7 @@
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
 
-def preview(particle, texture):
+def previewEffect(particle, texture):
     # map requests for particle / texture to particle / texture args
     
     current_dir = Path(__file__).resolve().parent

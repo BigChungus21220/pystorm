@@ -6,5 +6,5 @@ with open("tests/particles/spiral.particle.json", "r", encoding="utf-8") as file
 with open("tests/textures/opaque.png", "rb") as file:
     texture = file.read()
     
-ps.preview(particle, texture)
+ps.previewEffect(particle, texture)
 

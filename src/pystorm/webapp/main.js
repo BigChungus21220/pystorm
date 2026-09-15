@@ -49,14 +49,6 @@ async function initializeApp() {
 	let content = await loadJSON('effect.particle.json');
 
 	View.wintersky = new Wintersky.Scene({
-		// Setup event sub-emitters logic (optional)
-		async fetchParticleFile(identifier) {
-			if (identifier == 'snowstorm:drop_splash') {
-				let json = await loadJSON('../examples/drop_splash.particle.json');
-				return json;
-			}
-		},
-
 		async fetchTexture(config){
 			const response = await fetch('texture.png');
 
@@ -74,7 +66,7 @@ async function initializeApp() {
 			});
 		}
 	})
-	View.emitter = new Wintersky.Emitter(View.wintersky, content);
+	View.emitter = new Wintersky.Emitter(View.wintersky, content, config={loop_mode:"looping"});
 	View.scene.add(View.wintersky.space);
 
 	animate();

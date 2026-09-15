@@ -12,8 +12,8 @@ class EmitterLifetimeExpression(EmitterLifetime):
         self.activate = activate
         self.expire = expire
         
-    def contributeJson(self) -> JSONContributions:
-        contrib = JSONContributions("particle_effect.minecraft:emitter_lifetime_expression")
+    def _contributeJson(self) -> JSONContributions:
+        contrib = JSONContributions("particle_effect#components#minecraft:emitter_lifetime_expression")
         contrib.contribute_or_default("activation_expression", self.activate, 1)
         contrib.contribute_or_default("expiration_expression", self.expire, 0)
         return contrib
@@ -24,8 +24,8 @@ class EmitterLifetimeLooping(EmitterLifetime):
         self.activeTime = activeTime
         self.sleepTime = sleepTime
         
-    def contributeJson(self) -> JSONContributions:
-        contrib = JSONContributions("particle_effect.minecraft:emitter_lifetime_looping")
+    def _contributeJson(self) -> JSONContributions:
+        contrib = JSONContributions("particle_effect#components#minecraft:emitter_lifetime_looping")
         contrib.contribute("active_time", self.activeTime)
         contrib.contribute("sleep_time", self.sleepTime)
         return contrib
@@ -35,8 +35,8 @@ class EmitterLifetimeOnce(EmitterLifetime):
         super().__init__()
         self.activeTime = activeTime
         
-    def contributeJson(self) -> JSONContributions:
-        contrib = JSONContributions("particle_effect.minecraft:emitter_lifetime_once")
+    def _contributeJson(self) -> JSONContributions:
+        contrib = JSONContributions("particle_effect#components#minecraft:emitter_lifetime_once")
         contrib.contribute("active_time", self.activeTime)
         return contrib
 
@@ -50,8 +50,8 @@ class EmitterRateInstant(EmitterRate):
         super().__init__()
         self.particles = particles
         
-    def contributeJson(self) -> JSONContributions:
-        contrib = JSONContributions("particle_effect.minecraft:emitter_rate_instant")
+    def _contributeJson(self) -> JSONContributions:
+        contrib = JSONContributions("particle_effect#components#minecraft:emitter_rate_instant")
         contrib.contribute("num_particles", self.particles)
         return contrib
     
@@ -60,8 +60,8 @@ class EmitterRateManual(EmitterRate):
         super().__init__()
         self.maxParticles = maxParticles
         
-    def contributeJson(self) -> JSONContributions:
-        contrib = JSONContributions("particle_effect.minecraft:emitter_rate_manual")
+    def _contributeJson(self) -> JSONContributions:
+        contrib = JSONContributions("particle_effect#components#minecraft:emitter_rate_manual")
         contrib.contribute("max_particles", self.maxParticles)
         return contrib
     
@@ -71,8 +71,8 @@ class EmitterRateSteady(EmitterRate):
         self.maxParticles = maxParticles
         self.spawnRate = spawnRate
         
-    def contributeJson(self) -> JSONContributions:
-        contrib = JSONContributions("particle_effect.minecraft:emitter_rate_steady")
+    def _contributeJson(self) -> JSONContributions:
+        contrib = JSONContributions("particle_effect#components#minecraft:emitter_rate_steady")
         contrib.contribute("spawn_rate", self.spawnRate)
         contrib.contribute("max_particles", self.maxParticles)
         return contrib
@@ -93,8 +93,8 @@ class EmitterShapeDisc(EmitterShape):
         self.surfaceOnly = surfaceOnly
         self.direction = direction
         
-    def contributeJson(self) -> JSONContributions:
-        contrib = JSONContributions("particle_effect.minecraft:emitter_shape_disk")
+    def _contributeJson(self) -> JSONContributions:
+        contrib = JSONContributions("particle_effect#components#minecraft:emitter_shape_disk")
         contrib.contribute_or_default("plane_normal", self.planeNormal, (0, 1, 0))
         contrib.contribute_or_default("offset", self.offset, (0, 0, 0))
         contrib.contribute_or_default("radius", self.radius, 1)
@@ -110,8 +110,8 @@ class EmitterShapeBox(EmitterShape):
         self.surfaceOnly = surfaceOnly
         self.direction = direction
         
-    def contributeJson(self) -> JSONContributions:
-        contrib = JSONContributions("particle_effect.minecraft:emitter_shape_box")
+    def _contributeJson(self) -> JSONContributions:
+        contrib = JSONContributions("particle_effect#components#minecraft:emitter_shape_box")
         contrib.contribute("half_dimensions", self.halfDimensions)
         contrib.contribute_or_default("offset", self.offset, (0, 0, 0))
         contrib.contribute_or_default("surface_only", self.surfaceOnly, False)
@@ -124,8 +124,8 @@ class EmitterShapeEntityAABB(EmitterShape):
         self.surfaceOnly = surfaceOnly
         self.direction = direction
         
-    def contributeJson(self) -> JSONContributions:
-        contrib = JSONContributions("particle_effect.minecraft:emitter_shape_entity_aabb")
+    def _contributeJson(self) -> JSONContributions:
+        contrib = JSONContributions("particle_effect#components#minecraft:emitter_shape_entity_aabb")
         contrib.contribute_or_default("surface_only", self.surfaceOnly, False)
         contrib.contribute_or_default("direction", self.direction, "outwards")
         return contrib
@@ -136,8 +136,8 @@ class EmitterShapePoint(EmitterShape):
         self.offset = offset
         self.direction = direction
         
-    def contributeJson(self) -> JSONContributions:
-        contrib = JSONContributions("particle_effect.minecraft:emitter_shape_point")
+    def _contributeJson(self) -> JSONContributions:
+        contrib = JSONContributions("particle_effect#components#minecraft:emitter_shape_point")
         contrib.contribute_or_default("offset", self.offset, (0, 0, 0))
         contrib.contribute("direction", self.direction)
         return contrib
@@ -150,8 +150,8 @@ class EmitterShapeSphere(EmitterShape):
         self.surfaceOnly = surfaceOnly
         self.direction = direction
         
-    def contributeJson(self) -> JSONContributions:
-        contrib = JSONContributions("particle_effect.minecraft:emitter_shape_sphere")
+    def _contributeJson(self) -> JSONContributions:
+        contrib = JSONContributions("particle_effect#components#minecraft:emitter_shape_sphere")
         contrib.contribute_or_default("offset", self.offset, (0, 0, 0))
         contrib.contribute_or_default("radius", self.radius, 1)
         contrib.contribute_or_default("surface_only", self.surfaceOnly, False)
@@ -162,22 +162,29 @@ class EmitterShapeSphere(EmitterShape):
     
 
 class Emitter(JSONContributor):
-    def __init__(self, lifetime: EmitterLifetime, rate: EmitterRate, shape: EmitterShape, localPosition: bool = False, localRotation: bool = False, localVelocity: bool = False):
+    def __init__(self, lifetime: EmitterLifetime, rate: EmitterRate, shape: EmitterShape, localPosition: bool = False, localRotation: bool = False, localVelocity: bool = False, emitterCreation: Molang | None = None, emitterUpdate: Molang | None = None):
         self.lifetime = lifetime
         self.rate = rate
         self.shape = shape
         self.localPosition = localPosition
         self.localRotation = localRotation
         self.localVelocity = localVelocity
+        self.emitterCreation = emitterCreation
+        self.emitterUpdate = emitterUpdate
     
-    def contributeJson(self) -> JSONContributions:
-        contrib = JSONContributions("particle_effect.minecraft:emitter_local_space")
+    def _contributeJson(self) -> JSONContributions:
+        contrib = JSONContributions("particle_effect#components#minecraft:emitter_local_space")
         contrib.contribute_or_default("position", self.localPosition, False)
         contrib.contribute_or_default("rotation", self.localRotation, False)
         contrib.contribute_or_default("velocity", self.localVelocity, False)
         
-        contrib.merge(self.lifetime.contributeJson())
-        contrib.merge(self.rate.contributeJson())
-        contrib.merge(self.shape.contributeJson())
+        emitter_contrib = JSONContributions("particle_effect#components#minecraft:emitter_initialization")
+        emitter_contrib.contribute("creation_expression", self.emitterCreation)
+        emitter_contrib.contribute("per_update_expression", self.emitterUpdate)
+        contrib.merge(emitter_contrib)
+        
+        contrib.merge(self.lifetime._contributeJson())
+        contrib.merge(self.rate._contributeJson())
+        contrib.merge(self.shape._contributeJson())
         
         return contrib

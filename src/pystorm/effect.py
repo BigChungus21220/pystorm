@@ -1,35 +1,24 @@
+from .common import JSONContributions
 from .emitter import Emitter
+from .particle import Particle
+from .context import Event, Curve
 
-class ParticleEffect:
-    def __init__(self, identifier: str, emitter: Emitter, particle: Particle, events: list[Event], curves: list[Curve], variables: Variables):
-        pass
-    
-    # move event triggers to event
-    
-    # identifier
-    
-    # emitter 
-    #   initialization
-    #   space
-    #   events
-    #   
-    #   lifetime
-    #   rate
-    #   shape
-    
-    # appearance
-    #   texture
-    #   material
-    #   lighting
-    #   tint
+from typing import Any
 
-    # motion
-    #   collision
-    #   motion type
+def makeParticleEffect(identifier: str, emitter: Emitter, particle: Particle, events: list[Event] = [], curves: list[Curve] = []):
+    contrib = JSONContributions()
+    contrib.contribute("particle_effect#description#identifier", identifier)
+    contrib.contribute("format_version", "1.10.0")
     
-    # variables
-    #   curves
-    #   events
+    contrib.merge(emitter._contributeJson())
+    contrib.merge(particle._contributeJson())
     
-class Particle:
+    for event in events:
+        contrib.merge(event._contributeJson())
+        
+    for curve in curves:
+        contrib.merge(curve._contributeJson())
+    
+    return contrib.asJson()
+        
     
