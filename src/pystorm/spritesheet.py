@@ -73,7 +73,10 @@ class SpriteSheet:
         spritesheet.save(out_buffer, format="PNG")
         
         return cls(out_buffer.getvalue(), (0,0), uvSize, frame_count)
-        
+    
+    def halfSize(self):
+        return (self.uvSize[0]/32.0, self.uvSize[1]/32.0)
+    
     def saveImage(self, path: Path):
         with open(path, "wb") as file:
             file.write(self.texture)

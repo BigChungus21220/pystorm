@@ -139,6 +139,11 @@ class UVAnimationFPS(UVAnimation):
         self.fps = fps
         self.loopFrames = loopFrames
         
+    def toLifetime(self) -> float:
+        if isinstance(self.frameCount, float) or isinstance(self.frameCount, int):
+            return self.frameCount/self.fps
+        raise TypeError("This operation does not work with Molang frameCounts")
+        
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:particle_appearance_billboard#uv#flipbook")
         contrib.contribute("step_UV", self.uvStep)
@@ -252,7 +257,8 @@ type FacingMode = Literal[
     "direction_z", 
     "emitter_transform_xy", 
     "emitter_transform_xz", 
-    "emitter_transform_yz"
+    "emitter_transform_yz",
+    "lookat_direction"
 ]
 
 class ParticleFacing(JSONContributor, ABC):
@@ -280,7 +286,7 @@ class ParticleFacingExpression(ParticleFacing):
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:particle_appearance_billboard")
         contrib.contribute("facing_camera_mode", self.facingMode)
-        contrib.contribute("direction#mode", "custom_direction")
+        contrib.contribute("direction#mode", "custom")
         contrib.contribute("direction#custom_direction", self.direction)
         
         return contrib

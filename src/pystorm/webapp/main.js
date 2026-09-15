@@ -35,9 +35,10 @@ async function initializeApp() {
 	View.controls.zoomSpeed = 1.4;
 
 	View.scene = new THREE.Scene()
+	View.scene.background = new THREE.Color('#14141a');
 
 	View.helper = new THREE.AxesHelper(1);
-	View.grid = new THREE.GridHelper(64, 64, '#aaaaaa', '#cccccc');
+	View.grid = new THREE.GridHelper(64, 64, '#686767', '#717171');
 	View.grid.position.y -= 0.0005
 	View.scene.add(View.helper);
 	View.scene.add(View.grid);
