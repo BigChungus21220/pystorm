@@ -22,7 +22,7 @@
             "minecraft:particle_appearance_billboard": {
                 "direction": {
                     "custom_direction": [0, 1, 0], 
-                    "mode": "custom_direction"
+                    "mode": "custom"
                 }, 
                 "facing_camera_mode": "rotate_xyz", 
                 "size": [1, 1], 

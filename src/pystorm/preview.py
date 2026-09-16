@@ -40,6 +40,14 @@ def previewEffect(particle, texture):
                 content_type = 'text/javascript; charset=utf-8'
                 data = file.encode('utf-8')
                 
+            elif self.path == "/favicon.ico":
+                with open(current_dir / "webapp" / self.path[1:], "rb") as f:
+                    file = f.read()
+                
+                good = True
+                content_type = 'image/x-icon'
+                data = file
+                
             if good:
                 self.send_response(200)
                 self.send_header('Content-type', content_type)
