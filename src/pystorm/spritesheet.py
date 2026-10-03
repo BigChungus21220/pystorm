@@ -2,7 +2,7 @@ from aseprite_reader import AsepriteFile
 import io
 from pathlib import Path
 from PIL import Image
-from .common import Number
+from .molang_types import Number
 from .particle import ParticleTexture, UVAnimationFPS, UVAnimationLifetime
 
 class _InMemoryPath:
@@ -40,7 +40,11 @@ class _NamedBytesIO(io.BytesIO):
 
 
 class SpriteSheet:
-    def __init__(self, texture: bytes, uvStart: tuple[Number, Number], uvSize: tuple[Number, Number], frames: int) -> None:
+    def __init__(self, texture: bytes | Path, uvStart: tuple[Number, Number], uvSize: tuple[Number, Number], frames: int) -> None:
+        if isinstance(texture, Path):
+            with open(texture, "rb") as file:
+                texture = file.read()
+        
         self.texture = texture
         with Image.open(io.BytesIO(self.texture)) as img:
             self.textureSize = (img.width, img.height)
@@ -49,7 +53,11 @@ class SpriteSheet:
         self.frames = frames
     
     @classmethod
-    def fromASE(cls, ase: bytes):
+    def fromASE(cls, ase: bytes | Path):
+        if isinstance(ase, Path):
+            with open(ase, "rb") as file:
+                ase = file.read()
+        
         ase_buff = _InMemoryPath(ase)
         ase_file = AsepriteFile(ase_buff) # type: ignore
         frame_count = len(ase_file.frames)

@@ -11,33 +11,37 @@
 	<script src='molang.umd.js'></script>
 	<script src='tinycolor-min.js'></script>
 	<script src='wintersky.umd.js'></script>
+	<script src='readers-writer-lock.js'></script>
 	<script src='main.js'></script>
-	<style>
-		* {
-			margin: 0;
-			padding: 0;
-		}
-		body {
-			position: fixed;
-			height: 100%;
-			width: 100%;
-			font-family: Arial, Helvetica, sans-serif;
-		}
-		#hud {
-			position: absolute;
-			top: 0;
-			width: 100%;
-			box-shadow: 0 0 5px #00000050;
-			padding: 10px;
-			background: white;
-		}
-		select {
-			padding: 5px;
-		}
-	</style>
+	<link rel="stylesheet" href="style.css">
 </head>
 <body>
-	<canvas id="preview"></canvas>
+	<div class="main-container">
+		<div class="preview-area">
+			<canvas id="preview" class="preview"></canvas>
+			<div class="info-bar">
+				<div class="left-info-item info-item" id="info_identifier">identifier</div>
+				<div class="center-info-item info-item" id="info_count"></div>
+				<div class="right-info-item info-item" id="info_timer"></div>
+			</div>
+		</div>
+		<div class="gallery">
+			<h2>Library</h2>
+			<div class="gallery-scroll">
+				<div class="gallery-grid" id="gallery_grid">
+					<div class="gallery-item">
+						<img src="_placeholder.png" class="thumbnail"></img>
+						<div class="item-title-box">
+							<div class="item-title">placeholder</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="bottom-panel">
+				<button class="kill-button btn-red" onclick="killServer()">Close Server</button>
+			</div>
+		</div>
+	</div>
 	<script>
 		initializeApp()
 	</script>

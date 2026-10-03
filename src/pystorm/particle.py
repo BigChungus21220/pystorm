@@ -1,4 +1,5 @@
-from .common import JSONContributor, MolangValue, MolangInt, MolangNumber, MolangVector3, Molang, JSONContributions, Number, MolangVector2, Color
+from .common import JSONContributor, JSONContributions
+from .molang_types import MolangValue, MolangNumber, MolangVector3, Number, MolangVector2, Color
 from abc import ABC
 from typing import Literal
 
@@ -85,7 +86,7 @@ class ParticleTranslationDynamic(ParticleTranslation):
         contrib_initial.contribute_or_default("particle_effect#components#minecraft:particle_initial_speed", self.initialSpeed, 0)
         
         contrib = JSONContributions("particle_effect#components#minecraft:particle_motion_dynamic")
-        contrib.contribute_or_default("linear_acceleration", self.acceleration, 0)
+        contrib.contribute_or_default("linear_acceleration", self.acceleration, (0, 0, 0))
         contrib.contribute_or_default("linear_drag_coefficent", self.drag, 0)
         
         contrib.merge(contrib_initial)

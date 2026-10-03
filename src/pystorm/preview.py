@@ -1,66 +1,160 @@
-from http.server import HTTPServer, SimpleHTTPRequestHandler
-from pathlib import Path
+import json
+import urllib.request
+import urllib.parse
+import urllib.error
+import os
+import sys
+import subprocess
+import socket
+import time
+import platform
+from typing import Literal
 
-def previewEffect(particle, texture):
-    # map requests for particle / texture to particle / texture args
-    
-    current_dir = Path(__file__).resolve().parent
-    
-    class RequestHandler(SimpleHTTPRequestHandler):
+HOST = "127.0.0.1"
+PORT = 8000
+BASE_URL = f"http://{HOST}:{PORT}"
 
-        def do_GET(self):
-            allow_list = ["/main.js", "/molang.umd.js", "/wintersky.umd.js", "/OrbitControls.js", "/three.min.js", "/tinycolor-min.js"]
-            content_type = ''
-            data = bytes()
-            good = False
-            
-            if self.path == "/effect.particle.json":
-                good = True
-                content_type = 'application/json; charset=utf-8'
-                data = particle.encode('utf-8')
-                
-            elif self.path == "/texture.png":
-                good = True
-                content_type = 'image/png'
-                data = texture
-                
-            elif self.path in ["", ".", "/", "/index", "/index.html", "index", "index.html"]:
-                with open(current_dir / "webapp/index.html", "r", encoding="utf-8") as f:
-                    index = f.read()
-                
-                good = True
-                content_type = 'text/html; charset=utf-8'
-                data = index.encode('utf-8')
-                
-            elif self.path in allow_list:
-                with open(current_dir / "webapp" / self.path[1:], "r", encoding="utf-8") as f:
-                    file = f.read()
-                
-                good = True
-                content_type = 'text/javascript; charset=utf-8'
-                data = file.encode('utf-8')
-                
-            elif self.path == "/favicon.ico":
-                with open(current_dir / "webapp" / self.path[1:], "rb") as f:
-                    file = f.read()
-                
-                good = True
-                content_type = 'image/x-icon'
-                data = file
-                
-            if good:
-                self.send_response(200)
-                self.send_header('Content-type', content_type)
-                self.end_headers()
-                self.wfile.write(data)
-            else:
-                self.send_response(404)
+def checkStatus() -> bool:
+    server_up = False
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        server_up = (s.connect_ex((HOST, PORT)) == 0)
+        
+    return server_up
+
+def startServer(timeout: float | None | Literal["default"] = None):
+    server_up = False
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    server_path = os.path.join(script_dir, "server.py")
     
-    server_address = ('', 8000)
-    httpd = HTTPServer(server_address, RequestHandler)
-    print("Serving HTTP on http://localhost:8000 ...")
+    kwargs = {}
+    if platform.system() == 'Windows':
+        # DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP
+        kwargs['creationflags'] = 0x00000008 | 0x00000200
+    else:
+        kwargs['start_new_session'] = True
+        
+    process_cmd = [sys.executable, server_path]
+    
+    proc = subprocess.Popen(process_cmd, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, **kwargs)
+    print(f"Server started on PID: {proc.pid}")
+    
+    for _ in range(10):
+        time.sleep(0.5)
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            if s.connect_ex((HOST, PORT)) == 0:
+                server_up = True
+                break
+                
+    if not server_up:
+        raise ConnectionError(f"Could not connect to or start server at {BASE_URL}")
+    
+    if timeout != "default":
+        setTimeout(timeout)
+        
+    return BASE_URL
+
+
+def sendReq(url: str, method: str, content_type: str | None = None, data: bytes | None = None):
+    req = urllib.request.Request(url, data=data, method=method)
+    if content_type != None:
+        req.add_header('Content-Type', content_type)
+    req.add_header('Content-Length', str(len(data) if data != None else 0))
+    urllib.request.urlopen(req)
+    
+    
+def stopServer():
+    sendReq(
+        url = f"{BASE_URL}/shutdown",
+        method = "POST"
+    )
+    
+def setTimeout(timeout: float | None):
+    if timeout == None:
+        timeout = 1000000
+    if checkStatus():
+        try:
+            sendReq(
+                url = f"{BASE_URL}/timeout",
+                data = urllib.parse.urlencode({'timeout': timeout*60.0}).encode('utf-8'),
+                method = 'POST',
+                content_type = 'application/x-www-form-urlencoded'
+            )
+        except (urllib.error.URLError, ConnectionError) as e:
+            print(f"Failed to communicate with the server: {e}")
+    
+def setView(identifier: str):
+    identifier = identifier.replace(":", "~")
+    if checkStatus():
+        try:
+            sendReq(
+                url = f"{BASE_URL}/view",
+                data = urllib.parse.urlencode({'effect': identifier}).encode('utf-8'),
+                method = 'POST',
+                content_type = 'application/x-www-form-urlencoded'
+            )
+        except (urllib.error.URLError, ConnectionError) as e:
+            print(f"Failed to communicate with the server: {e}")
+
+def previewEffect(particle: dict, texture: bytes, change_view: bool = True, start_server: bool = True):
     try:
-        httpd.serve_forever()
-    except KeyboardInterrupt:
-        print("\nServer stopped.")
-        httpd.server_close()
+        name: str = particle.get("particle_effect",{}).get("description",{}).get("identifier")
+        name = name.replace(":", "~")
+    except json.JSONDecodeError:
+        print("Could not display effect. Parse error.")
+        return
+    if not isinstance(name, str):
+        print("Could not display effect. Identifier not found.")
+        return
+
+    try:
+        if not checkStatus():
+            if start_server:
+                print("Preview server not responding. Starting local server...")
+                startServer()
+            else:
+                print("Cannot preview effect. Preview server not responding.")
+                return
+        
+        
+        safe_name = urllib.parse.quote(name, safe='')
+        
+        sendReq(
+            url = f"{BASE_URL}/{safe_name}.particle.json",
+            data = json.dumps(particle).encode('utf-8'),
+            method = 'PUT',
+            content_type = 'application/json'
+        )
+        
+        sendReq(
+            url = f"{BASE_URL}/{safe_name}.png",
+            data = texture,
+            method = 'PUT',
+            content_type = 'image/png'
+        )
+
+        if (change_view):
+            sendReq(
+                url = f"{BASE_URL}/view",
+                data = urllib.parse.urlencode({'effect': name}).encode('utf-8'),
+                method = 'POST',
+                content_type = 'application/x-www-form-urlencoded'
+            )
+
+        print(f"Previewing effect on {BASE_URL}/")
+
+    except (urllib.error.URLError, ConnectionError) as e:
+        print(f"Failed to communicate with the server: {e}")
+        
+def queryPID() -> int:
+    if checkStatus():
+        try:
+            url = f"{BASE_URL}/pid.txt"
+            with urllib.request.urlopen(url) as response:
+                pid_string = response.read().decode('utf-8').strip()
+                pid = int(pid_string)
+            return pid
+        except (urllib.error.URLError, ConnectionError) as e:
+            print(f"Failed to communicate with the server: {e}")
+            return 0
+    else:
+        return 0

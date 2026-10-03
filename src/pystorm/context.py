@@ -1,4 +1,5 @@
-from pystorm.common import JSONContributions, Number, Molang, MolangValue
+from pystorm.common import JSONContributions
+from .molang_types import Molang, MolangValue, Number
 
 from .common import JSONContributor
 from abc import ABC, abstractmethod

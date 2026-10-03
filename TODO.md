@@ -1,0 +1,14 @@
+ - [x] Separate server into own process
+     - [ ] Allow port to be set
+ - [x] Add flag for whether to trigger previews
+ - [ ] Add image manipulation helpers
+ - [ ] Add built-in templates
+ - [ ] Create library system
+     - [ ] Add effect registry
+     - [ ] Create a standardized particle export system
+     - [ ] Add preview grid on web viewer
+ - [ ] Blockbench integration
+     - [ ] Add particle library selection box
+     - [ ] Bonus points for adding a preview
+ - [ ] Regolith integration
+     - [ ] Auto run generators

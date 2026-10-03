@@ -64,6 +64,11 @@ spritesheet.saveImage(Path("my_particle.png"))
 ```
 
 
+### Development
+
+The preview server will automatically close in 10 minutes by default if no requests are recieved. It can also can be manually terminated by POST request to `/shutdown`: `curl -X POST http://127.0.0.1:8000/shutdown` or from the ui.
+
+
 ### Acknowledgements
 
 Special thanks to Jannis for creating the [Wintersky](https://github.com/JannisX11/wintersky) library and the [Snowstorm](https://snowstorm.app/) particle editor.

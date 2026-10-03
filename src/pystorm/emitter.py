@@ -1,4 +1,5 @@
-from .common import JSONContributor, MolangValue, MolangInt, MolangNumber, MolangVector3, Molang, JSONContributions
+from .common import JSONContributor, JSONContributions
+from .molang_types import MolangValue, MolangInt, MolangNumber, MolangVector3, Molang
 from abc import ABC
 from typing import Literal
 
@@ -139,7 +140,7 @@ class EmitterShapePoint(EmitterShape):
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:emitter_shape_point")
         contrib.contribute_or_default("offset", self.offset, (0, 0, 0))
-        contrib.contribute("direction", self.direction)
+        contrib.contribute_or_default("direction", self.direction, (0, 0, 0))
         return contrib
 
 class EmitterShapeSphere(EmitterShape):
