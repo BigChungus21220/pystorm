@@ -8,11 +8,17 @@ from dataclasses import dataclass, field
 
 @dataclass
 class ParticleEffect:
+    """A Minecraft particle effect"""
     identifier: str
+    """Particle identifier. `namespace:name`"""
     emitter: Emitter
+    """Rules for particle spawning."""
     particle: Particle
+    """Particle behavior and appearance."""
     events: list[Event] = field(default_factory=list)
+    """Events and event triggers"""
     curves: list[Curve] = field(default_factory=list)
+    """Variable curves"""
         
     def asJSON(self) -> dict:
         contrib = JSONContributions()
