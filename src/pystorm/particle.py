@@ -2,16 +2,15 @@ from .common import JSONContributor, JSONContributions
 from .molang_types import MolangValue, MolangNumber, MolangVector3, Number, MolangVector2, Color
 from abc import ABC
 from typing import Literal
+from dataclasses import dataclass, field
 
-
+@dataclass
 class ParticleLifetime(JSONContributor):
-    def __init__(self, maxLifetime: MolangValue, expire: MolangValue = 0, expireIn: list[str] = [], surviveIn: list[str] = [], killPlane: tuple[Number, Number, Number, Number] | None = None) -> None:
-        super().__init__()
-        self.maxLifetime = maxLifetime
-        self.expire = expire
-        self.expireIn = expireIn
-        self.surviveIn = surviveIn
-        self.killPlane = killPlane
+    maxLifetime: MolangValue
+    expire: MolangValue = 0
+    expireIn: list[str] = field(default_factory=list)
+    surviveIn: list[str] = field(default_factory=list)
+    killPlane: tuple[Number, Number, Number, Number] | None = None
         
     def _contributeJson(self) -> JSONContributions:
         contribExpireIn = JSONContributions()
@@ -38,14 +37,13 @@ class ParticleLifetime(JSONContributor):
 class ParticleRotation(JSONContributor, ABC):
     pass
 
+@dataclass
 class ParticleRotationDynamic(ParticleRotation):
-    def __init__(self, initialRotation: MolangNumber = 0, initialVelocity: MolangNumber = 0, acceleration: MolangNumber = 0, drag: MolangNumber = 0) -> None:
-        super().__init__()
-        self.initialRotation = initialRotation
-        self.initialVelocity = initialVelocity
-        self.acceleration = acceleration
-        self.drag = drag
-        
+    initialRotation: MolangNumber = 0
+    initialVelocity: MolangNumber = 0
+    acceleration: MolangNumber = 0
+    drag: MolangNumber = 0
+    
     def _contributeJson(self) -> JSONContributions:
         contrib_initial = JSONContributions("particle_effect#components#minecraft:particle_initial_spin")
         contrib_initial.contribute_or_default("rotation", self.initialRotation, 0)
@@ -59,10 +57,9 @@ class ParticleRotationDynamic(ParticleRotation):
         
         return contrib
 
+@dataclass
 class ParticleRotationParametric(ParticleRotation):
-    def __init__(self, rotation: MolangNumber = 0) -> None:
-        super().__init__()
-        self.rotation = rotation
+    rotation: MolangNumber = 0
         
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:particle_motion_parametric")
@@ -74,12 +71,11 @@ class ParticleRotationParametric(ParticleRotation):
 class ParticleTranslation(JSONContributor, ABC):
     pass
 
+@dataclass
 class ParticleTranslationDynamic(ParticleTranslation):
-    def __init__(self, initialSpeed: MolangNumber = 0, acceleration: MolangVector3 = (0, 0, 0), drag: MolangNumber = 0) -> None:
-        super().__init__()
-        self.initialSpeed = initialSpeed
-        self.acceleration = acceleration
-        self.drag = drag
+    initialSpeed: MolangNumber = 0
+    acceleration: MolangVector3 = (0, 0, 0)
+    drag: MolangNumber = 0
         
     def _contributeJson(self) -> JSONContributions:
         contrib_initial = JSONContributions()
@@ -93,11 +89,10 @@ class ParticleTranslationDynamic(ParticleTranslation):
         
         return contrib
 
+@dataclass
 class ParticleTranslationParametric(ParticleTranslation):
-    def __init__(self, position: MolangVector3 = (0, 0, 0), direction: MolangVector3 | None = None) -> None:
-        super().__init__()
-        self.position = position
-        self.direction = direction
+    position: MolangVector3 = (0, 0, 0)
+    direction: MolangVector3 | None = None
         
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:particle_motion_parametric")
@@ -108,14 +103,13 @@ class ParticleTranslationParametric(ParticleTranslation):
 
 
 
+@dataclass
 class ParticleCollision(JSONContributor):
-    def __init__(self, enabled: MolangValue = True, drag: Number = 0, restitution: Number = 0, radius: Number = 0, expireOnContact: bool = False) -> None:
-        super().__init__()
-        self.enabled = enabled
-        self.drag = drag
-        self.restitution = restitution
-        self.radius = radius
-        self.expireOnContact = expireOnContact
+    enabled: MolangValue = True
+    drag: Number = 0
+    restitution: Number = 0
+    radius: Number = 0
+    expireOnContact: bool = False
         
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:particle_motion_collision")
@@ -132,13 +126,12 @@ class ParticleCollision(JSONContributor):
 class UVAnimation(JSONContributor, ABC):
     pass
 
+@dataclass
 class UVAnimationFPS(UVAnimation):
-    def __init__(self, uvStep: tuple[Number, Number], frameCount: MolangNumber, fps: float, loopFrames: bool = False) -> None:
-        super().__init__()
-        self.uvStep = uvStep
-        self.frameCount = frameCount
-        self.fps = fps
-        self.loopFrames = loopFrames
+    uvStep: tuple[Number, Number]
+    frameCount: MolangNumber
+    fps: float
+    loopFrames: bool = False
         
     def toLifetime(self) -> float:
         if isinstance(self.frameCount, float) or isinstance(self.frameCount, int):
@@ -153,11 +146,10 @@ class UVAnimationFPS(UVAnimation):
         contrib.contribute("frames_per_second", self.fps)
         return contrib
         
+@dataclass
 class UVAnimationLifetime(UVAnimation):
-    def __init__(self, uvStep: tuple[Number, Number], frameCount: MolangNumber) -> None:
-        super().__init__()
-        self.uvStep = uvStep
-        self.frameCount = frameCount
+    uvStep: tuple[Number, Number]
+    frameCount: MolangNumber
 
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:particle_appearance_billboard#uv#flipbook")
@@ -168,14 +160,13 @@ class UVAnimationLifetime(UVAnimation):
 
 
 
+@dataclass
 class ParticleTexture(JSONContributor):
-    def __init__(self, texture: str, textureSize: tuple[int, int], uv: MolangVector2, uvSize: MolangVector2, animation: UVAnimation | None = None) -> None:
-        super().__init__()
-        self.texture = texture
-        self.textureSize = textureSize
-        self.uv = uv
-        self.uvSize = uvSize
-        self.animation = animation
+    texture: str
+    textureSize: tuple[int, int]
+    uv: MolangVector2
+    uvSize: MolangVector2
+    animation: UVAnimation | None = None
         
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:particle_appearance_billboard#uv")
@@ -203,21 +194,19 @@ class ParticleTexture(JSONContributor):
 class ParticleTint(JSONContributor, ABC):
     pass
 
+@dataclass
 class ParticleTintExpression(ParticleTint):
-    def __init__(self, color: Color) -> None:
-        super().__init__()
-        self.color = color
+    color: Color
     
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:particle_appearance_tinting")
         contrib.contribute("color", self.color)
         return contrib
-    
+
+@dataclass
 class ParticleTintGradient(ParticleTint):
-    def __init__(self, interpolant: MolangNumber, colors: dict[Number, Color]) -> None:
-        super().__init__()
-        self.interpolant = interpolant
-        self.colors = colors
+    interpolant: MolangNumber
+    colors: dict[Number, Color]
 
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:particle_appearance_tinting#color")
@@ -227,12 +216,11 @@ class ParticleTintGradient(ParticleTint):
 
 
 
+@dataclass
 class ParticleMaterial(JSONContributor):
-    def __init__(self, material: str = "particles_alpha", recieveLighting: bool = False, tint: ParticleTint | None = None) -> None:
-        super().__init__()
-        self.material = material
-        self.recieveLighting = recieveLighting
-        self.tint = tint
+    material: str = "particles_alpha"
+    recieveLighting: bool = False
+    tint: ParticleTint | None = None
         
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions()
@@ -265,11 +253,10 @@ type FacingMode = Literal[
 class ParticleFacing(JSONContributor, ABC):
     pass
 
+@dataclass
 class ParticleFacingVelocity(ParticleFacing):
-    def __init__(self, facingMode: FacingMode = "rotate_xyz", minVelocity: Number = 0.01) -> None:
-        super().__init__()
-        self.facingMode = facingMode
-        self.minVelocity = minVelocity
+    facingMode: FacingMode = "rotate_xyz"
+    minVelocity: Number = 0.01
         
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:particle_appearance_billboard")
@@ -277,12 +264,11 @@ class ParticleFacingVelocity(ParticleFacing):
         contrib.contribute("direction#mode", "derive_from_velocity")
         contrib.contribute("direction#min_speed_threshold", self.minVelocity)
         return contrib
-    
+
+@dataclass
 class ParticleFacingExpression(ParticleFacing):
-    def __init__(self, facingMode: FacingMode = "rotate_xyz", direction: MolangVector3 = (0, 1, 0)) -> None:
-        super().__init__()
-        self.facingMode = facingMode
-        self.direction = direction
+    facingMode: FacingMode = "rotate_xyz"
+    direction: MolangVector3 = (0, 1, 0)
         
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:particle_appearance_billboard")
@@ -294,13 +280,12 @@ class ParticleFacingExpression(ParticleFacing):
 
 
 
+@dataclass
 class ParticleAppearance(JSONContributor):
-    def __init__(self, texture: ParticleTexture, material: ParticleMaterial, size: MolangVector2, facing: ParticleFacing) -> None:
-        super().__init__()
-        self.texture = texture
-        self.material = material
-        self.size = size
-        self.facing = facing
+    texture: ParticleTexture
+    material: ParticleMaterial
+    size: MolangVector2
+    facing: ParticleFacing
         
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:particle_appearance_billboard")
@@ -314,14 +299,13 @@ class ParticleAppearance(JSONContributor):
 
 
 
+@dataclass
 class Particle(JSONContributor):
-    def __init__(self, lifetime: ParticleLifetime, motion: ParticleTranslation, rotation: ParticleRotation, appearance: ParticleAppearance, collision: ParticleCollision | None = None) -> None:
-        super().__init__()
-        self.lifetime = lifetime
-        self.motion = motion
-        self.rotation = rotation
-        self.collision = collision
-        self.appearance = appearance
+    lifetime: ParticleLifetime
+    motion: ParticleTranslation
+    rotation: ParticleRotation
+    appearance: ParticleAppearance
+    collision: ParticleCollision | None = None
         
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions()

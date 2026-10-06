@@ -3,7 +3,8 @@ from compact_json import Formatter
 
 # this function was (mostly) written by Gemini
 def processMolang(expression: str):
-# 1. Remove C-style single-line (//) and multi-line (/* */) comments.
+    """Processes strings with all your favorite molang decorations to valid molang / json. (newlines, comments, whitespace shrinking, double quotes)"""
+    # 1. Remove C-style single-line (//) and multi-line (/* */) comments.
     # We use a regex that matches strings first (to avoid removing comment characters inside strings)
     # Group 1: Strings | Group 2: Comments
     def remove_comments(match):
@@ -92,9 +93,11 @@ def custom_sort_dict_R(obj, order_list):
     return obj
 
 def sort_effect(obj) -> dict:
+    """Sorts particle json according to standard organization"""
     return custom_sort_dict_R(obj, element_precedence) # type: ignore
 
 def serializePretty(json: dict) -> str:
+    """Pretty prints and sorts the json according to particle file convention"""
     sort = sort_effect(json)
     
     formatter = Formatter()

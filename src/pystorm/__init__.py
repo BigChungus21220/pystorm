@@ -1,6 +1,6 @@
 from .preview import previewEffect, setTimeout, setView, queryPID, stopServer, startServer, checkStatus
 from .effect import ParticleEffect
-from .spritesheet import SpriteSheet
+from .spritesheet import SpriteSheet, SpriteAtlas, normalizeImageFrames
 from .utils import serializePretty, sort_effect
 import types
 from .particle import (

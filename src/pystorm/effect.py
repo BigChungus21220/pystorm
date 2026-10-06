@@ -4,14 +4,15 @@ from .particle import Particle
 from .context import Event, Curve
 from .utils import serializePretty
 from pathlib import Path
-        
+from dataclasses import dataclass, field
+
+@dataclass
 class ParticleEffect:
-    def __init__(self, identifier: str, emitter: Emitter, particle: Particle, events: list[Event] = [], curves: list[Curve] = []):
-        self.identifier = identifier
-        self.emitter = emitter
-        self.particle = particle
-        self.events = events
-        self.curves = curves
+    identifier: str
+    emitter: Emitter
+    particle: Particle
+    events: list[Event] = field(default_factory=list)
+    curves: list[Curve] = field(default_factory=list)
         
     def asJSON(self) -> dict:
         contrib = JSONContributions()

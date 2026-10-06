@@ -4,9 +4,8 @@ from pathlib import Path
 from PIL import Image, ImageSequence
 from .molang_types import Number
 from .particle import ParticleTexture, UVAnimationFPS, UVAnimationLifetime, ParticleAppearance
-from typing import Literal, Any, Self
+from typing import Literal, Any
 import numpy as np
-import numpy.typing as npt
 from dataclasses import dataclass
 from collections.abc import Buffer, Sequence
 

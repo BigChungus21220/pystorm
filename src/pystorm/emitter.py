@@ -2,39 +2,37 @@ from .common import JSONContributor, JSONContributions
 from .molang_types import MolangValue, MolangInt, MolangNumber, MolangVector3, Molang
 from abc import ABC
 from typing import Literal
+from dataclasses import dataclass
 
 
 class EmitterLifetime(JSONContributor, ABC):
     pass
 
+@dataclass
 class EmitterLifetimeExpression(EmitterLifetime):
-    def __init__(self, activate: MolangValue = 1, expire: MolangValue = 0 ) -> None:
-        super().__init__()
-        self.activate = activate
-        self.expire = expire
+    activate: MolangValue = 1
+    expire: MolangValue = 0
         
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:emitter_lifetime_expression")
         contrib.contribute_or_default("activation_expression", self.activate, 1)
         contrib.contribute_or_default("expiration_expression", self.expire, 0)
         return contrib
-    
+
+@dataclass
 class EmitterLifetimeLooping(EmitterLifetime):
-    def __init__(self, activeTime: MolangValue = 10, sleepTime: MolangValue = 0 ) -> None:
-        super().__init__()
-        self.activeTime = activeTime
-        self.sleepTime = sleepTime
+    activeTime: MolangValue = 10
+    sleepTime: MolangValue = 0
         
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:emitter_lifetime_looping")
         contrib.contribute("active_time", self.activeTime)
         contrib.contribute("sleep_time", self.sleepTime)
         return contrib
-    
+
+@dataclass
 class EmitterLifetimeOnce(EmitterLifetime):
-    def __init__(self, activeTime: MolangValue = 10 ) -> None:
-        super().__init__()
-        self.activeTime = activeTime
+    activeTime: MolangValue = 10
         
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:emitter_lifetime_once")
@@ -46,31 +44,28 @@ class EmitterLifetimeOnce(EmitterLifetime):
 class EmitterRate(JSONContributor, ABC):
     pass
 
+@dataclass
 class EmitterRateInstant(EmitterRate):
-    def __init__(self, particles: int | Molang = 1) -> None:
-        super().__init__()
-        self.particles = particles
+    particles: int | Molang = 1
         
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:emitter_rate_instant")
         contrib.contribute("num_particles", self.particles)
         return contrib
-    
+
+@dataclass
 class EmitterRateManual(EmitterRate):
-    def __init__(self, maxParticles: MolangInt = 50) -> None:
-        super().__init__()
-        self.maxParticles = maxParticles
+    maxParticles: MolangInt = 50
         
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:emitter_rate_manual")
         contrib.contribute("max_particles", self.maxParticles)
         return contrib
-    
+
+@dataclass
 class EmitterRateSteady(EmitterRate):
-    def __init__(self, spawnRate: MolangNumber = 1, maxParticles: MolangInt = 50) -> None:
-        super().__init__()
-        self.maxParticles = maxParticles
-        self.spawnRate = spawnRate
+    spawnRate: MolangNumber = 1
+    maxParticles: MolangInt = 50
         
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:emitter_rate_steady")
@@ -85,14 +80,13 @@ type EmitterShapeDirection = Literal["inwards", "outwards"] | MolangVector3
 class EmitterShape(JSONContributor, ABC):
     pass
 
+@dataclass
 class EmitterShapeDisc(EmitterShape):
-    def __init__(self, planeNormal: MolangVector3 = (0, 1, 0), offset: MolangVector3 = (0, 0, 0), radius: MolangNumber = 1, surfaceOnly: bool = False, direction: EmitterShapeDirection = "outwards") -> None:
-        super().__init__()
-        self.planeNormal = planeNormal
-        self.offset = offset
-        self.radius = radius
-        self.surfaceOnly = surfaceOnly
-        self.direction = direction
+    planeNormal: MolangVector3 = (0, 1, 0)
+    offset: MolangVector3 = (0, 0, 0)
+    radius: MolangNumber = 1
+    surfaceOnly: bool = False
+    direction: EmitterShapeDirection = "outwards"
         
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:emitter_shape_disk")
@@ -103,13 +97,12 @@ class EmitterShapeDisc(EmitterShape):
         contrib.contribute_or_default("direction", self.direction, "outwards")
         return contrib
 
+@dataclass
 class EmitterShapeBox(EmitterShape):
-    def __init__(self, halfDimensions: MolangVector3, offset: MolangVector3 = (0, 0, 0), surfaceOnly: bool = False, direction: EmitterShapeDirection = "outwards") -> None:
-        super().__init__()
-        self.halfDimensions = halfDimensions
-        self.offset = offset
-        self.surfaceOnly = surfaceOnly
-        self.direction = direction
+    halfDimensions: MolangVector3
+    offset: MolangVector3 = (0, 0, 0)
+    surfaceOnly: bool = False
+    direction: EmitterShapeDirection = "outwards"
         
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:emitter_shape_box")
@@ -118,24 +111,22 @@ class EmitterShapeBox(EmitterShape):
         contrib.contribute_or_default("surface_only", self.surfaceOnly, False)
         contrib.contribute_or_default("direction", self.direction, "outwards")
         return contrib
-    
+
+@dataclass
 class EmitterShapeEntityAABB(EmitterShape):
-    def __init__(self, surfaceOnly: bool = False, direction: EmitterShapeDirection = "outwards") -> None:
-        super().__init__()
-        self.surfaceOnly = surfaceOnly
-        self.direction = direction
+    surfaceOnly: bool = False
+    direction: EmitterShapeDirection = "outwards"
         
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:emitter_shape_entity_aabb")
         contrib.contribute_or_default("surface_only", self.surfaceOnly, False)
         contrib.contribute_or_default("direction", self.direction, "outwards")
         return contrib
-    
+
+@dataclass
 class EmitterShapePoint(EmitterShape):
-    def __init__(self, offset: MolangVector3 = (0, 0, 0), direction: MolangVector3 = (0, 0, 0)) -> None:
-        super().__init__()
-        self.offset = offset
-        self.direction = direction
+    offset: MolangVector3 = (0, 0, 0)
+    direction: MolangVector3 = (0, 0, 0)
         
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:emitter_shape_point")
@@ -143,13 +134,12 @@ class EmitterShapePoint(EmitterShape):
         contrib.contribute_or_default("direction", self.direction, (0, 0, 0))
         return contrib
 
+@dataclass
 class EmitterShapeSphere(EmitterShape):
-    def __init__(self, offset: MolangVector3 = (0, 0, 0), radius: MolangNumber = 1, surfaceOnly: bool = False, direction: EmitterShapeDirection = "outwards") -> None:
-        super().__init__()
-        self.offset = offset
-        self.radius = radius
-        self.surfaceOnly = surfaceOnly
-        self.direction = direction
+    offset: MolangVector3 = (0, 0, 0)
+    radius: MolangNumber = 1
+    surfaceOnly: bool = False
+    direction: EmitterShapeDirection = "outwards"
         
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:emitter_shape_sphere")
@@ -162,16 +152,16 @@ class EmitterShapeSphere(EmitterShape):
     
     
 
+@dataclass
 class Emitter(JSONContributor):
-    def __init__(self, lifetime: EmitterLifetime, rate: EmitterRate, shape: EmitterShape, localPosition: bool = False, localRotation: bool = False, localVelocity: bool = False, emitterCreation: Molang | None = None, emitterUpdate: Molang | None = None):
-        self.lifetime = lifetime
-        self.rate = rate
-        self.shape = shape
-        self.localPosition = localPosition
-        self.localRotation = localRotation
-        self.localVelocity = localVelocity
-        self.emitterCreation = emitterCreation
-        self.emitterUpdate = emitterUpdate
+    lifetime: EmitterLifetime
+    rate: EmitterRate
+    shape: EmitterShape
+    localPosition: bool = False
+    localRotation: bool = False
+    localVelocity: bool = False
+    emitterCreation: Molang | None = None
+    emitterUpdate: Molang | None = None
     
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:emitter_local_space")

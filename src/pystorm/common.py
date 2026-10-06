@@ -6,10 +6,21 @@ from .molang_types import Number
 
 class JSONContributions:
     def __init__(self, root: str | None = None) -> None:
+        """JSON contributions starting from `root`. Eg: `contributeJson("name", ...)` with `root = 'path'` contributes `path#name`
+
+        Args:
+            root (str | None, optional): Root json path. Defaults to None.
+        """
         self.root = root
         self.contributions: dict[str, Any] = {}
     
     def contribute(self, path: str, value: Any | None):
+        """Contributes a value if it is not `None`
+        
+        Args:
+            path (str): Where to put value. Formatted as `key1#key2?#key3`, where ? means the value is only contributed if `key1#key2` has another contribution under it.
+            value (Any): value to contribute at `path`
+        """
         if value is not None:
             if isinstance(value, str):
                 value = processMolang(value)
@@ -18,8 +29,26 @@ class JSONContributions:
                 path = self.root + "#" + path
             
             self.contributions[path] = value
+    
+    def contribute_or_default(self, path: str, value: Any, defaultValue: Any):
+        """Contributes a value only if it is not the default value and it isn't `None`
+        
+        Args:
+            path (str): Where to put value. Formatted as `key1#key2?#key3`, where ? means the value is only contributed if `key1#key2` has another contribution under it.
+            value (Any): value to contribute at `path`
+            defaultValue (Any): value to compare against to check if contribution needs to be made
+        """
+        if value != defaultValue:
+            if isinstance(value, str):
+                value = processMolang(value)
                 
+            if self.root is not None:
+                path = self.root + "#" + path
+                
+            self.contributions[path] = value
+            
     def contribute_item(self, path: str, value: Any | None):
+        """Specialized contribution for list items"""
         if value is not None:
             if isinstance(value, str):
                 value = processMolang(value)
@@ -35,8 +64,9 @@ class JSONContributions:
                     contrib.append(value)
                 else:
                     raise TypeError(f"{path} is not a list")
-                
+            
     def contribute_looping_item(self, path: str, id: Number, value: str | None):
+        """Specialized contribution for looping events"""
         if value is not None:
             if isinstance(value, str):
                 value = processMolang(value)
@@ -63,20 +93,12 @@ class JSONContributions:
                 else:
                     raise TypeError(f"{path} is not a list")
     
-    def contribute_or_default(self, path: str, value: Any, defaultValue: Any):
-        if value != defaultValue:
-            if isinstance(value, str):
-                value = processMolang(value)
-                
-            if self.root is not None:
-                path = self.root + "#" + path
-                
-            self.contributions[path] = value
-    
     def merge(self, other: Self):
+        """Joins two contribution lists. Paths of joined contributions are not updated, but any new contributions will still use the root as the path base."""
         self.contributions.update(other.contributions)
         
     def asJson(self) -> dict:
+        """Resolves contributions into a json document"""
         contributions = JSONContributions._resolve_conditional_keys(self.contributions)
         
         json_obj = {}
@@ -99,7 +121,8 @@ class JSONContributions:
         
     # helper method written by Gemini
     @staticmethod
-    def _resolve_conditional_keys(contributions: dict[str, Any]):
+    def _resolve_conditional_keys(contributions: dict[str, Any]) -> list[tuple[str, Any]]:
+        """resolves conditional keys (keys containing ? only contribute if another key appends up to ?)"""
         rules = []
         parsed_keys = {}
         

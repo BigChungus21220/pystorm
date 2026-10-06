@@ -129,6 +129,7 @@ class Handler(SimpleHTTPRequestHandler):
         super().do_GET()
             
     def do_PUT(self):
+        # used for submitting particles and textures to the server
         is_particle = self.path.endswith(particle_ext)
         is_texture = self.path.endswith(texture_ext)
         if is_particle or is_texture:
@@ -158,8 +159,7 @@ class Handler(SimpleHTTPRequestHandler):
                 
                 textures[file_name] = data
                 
-            #if update:
-            if True:
+            if update:
                 notify_clients("file_update", {
                     "effect": file_name,
                     "type": "particle" if is_particle else "texture",
@@ -175,6 +175,7 @@ class Handler(SimpleHTTPRequestHandler):
             
     def do_POST(self):
         global active
+        # shutdown endpoint
         if self.path == "/shutdown":
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
@@ -184,6 +185,7 @@ class Handler(SimpleHTTPRequestHandler):
             threading.Thread(target=self.server.server_close, daemon=True).start()
             return
         
+        # change view endpoint
         elif self.path == "/view":
             content_length = int(self.headers.get('Content-Length', 0))
             body = self.rfile.read(content_length).decode('utf-8')
@@ -206,6 +208,7 @@ class Handler(SimpleHTTPRequestHandler):
             else:
                 self.send_error(400, "Missing 'effect' parameter")
         
+        # set timeout endpoint
         elif self.path == "/timeout":
             
             content_length = int(self.headers.get('Content-Length', 0))
