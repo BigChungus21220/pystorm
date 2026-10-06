@@ -45,7 +45,7 @@ effect = ParticleEffect(
     )
 )
 
-spritesheet2 = SpriteSheet(Path("tests/textures/animation.png"), (0,0), (8,8), 4)
+spritesheet2 = SpriteSheet.fromImage(Path("tests/textures/animation.png"), (8,8), 4)
 
 effect2 = ParticleEffect(
     identifier = "test:compilation_test2",
@@ -90,11 +90,11 @@ with open("tests/test_outputs/output.json", "w") as file:
     file.write(effect.asStr())
 
 startServer(timeout=None)
-previewEffect(effect.asJSON(), spritesheet.texture)
-previewEffect(effect2.asJSON(), spritesheet2.texture)
-previewEffect(effect.asJSON(), spritesheet.texture)
-previewEffect(effect2.asJSON(), spritesheet2.texture)
-previewEffect(effect.asJSON(), spritesheet.texture)
-previewEffect(effect2.asJSON(), spritesheet2.texture)
-previewEffect(effect.asJSON(), spritesheet.texture)
-previewEffect(effect2.asJSON(), spritesheet2.texture)
+previewEffect(effect.asJSON(), spritesheet.pngBytes())
+previewEffect(effect2.asJSON(), spritesheet2.pngBytes())
+previewEffect(effect.asJSON(), spritesheet.pngBytes())
+previewEffect(effect2.asJSON(), spritesheet2.pngBytes())
+previewEffect(effect.asJSON(), spritesheet.pngBytes())
+previewEffect(effect2.asJSON(), spritesheet2.pngBytes())
+previewEffect(effect.asJSON(), spritesheet.pngBytes())
+previewEffect(effect2.asJSON(), spritesheet2.pngBytes())

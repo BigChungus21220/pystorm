@@ -1,12 +1,14 @@
  - [x] Separate server into own process
      - [ ] Allow port to be set
+     - [ ] Improve gallery text truncation strategy
+     - [ ] Allow auto indexing particles in folder
+        - show source file location
  - [x] Add flag for whether to trigger previews
  - [ ] Add image manipulation helpers
+    - get frames / set frames
+    - sync texture with frames
+    - common transform / color operations
  - [ ] Add built-in templates
- - [ ] Create library system
-     - [ ] Add effect registry
-     - [ ] Create a standardized particle export system
-     - [ ] Add preview grid on web viewer
  - [ ] Blockbench integration
      - [ ] Add particle library selection box
      - [ ] Bonus points for adding a preview

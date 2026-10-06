@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   height="24px"
+   viewBox="0 -960 960 960"
+   width="24px"
+   fill="#e3e3e3"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="particle_library.svg"
+   inkscape:version="1.3.2 (091e20e, 2023-11-25, custom)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="8.5219694"
+     inkscape:cx="-28.103833"
+     inkscape:cy="36.7286"
+     inkscape:window-width="2560"
+     inkscape:window-height="1316"
+     inkscape:window-x="-12"
+     inkscape:window-y="-12"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" />
+  <path
+     id="path1"
+     d="M 320 -880 C 298.00002 -880 279.18228 -872.15103 263.51562 -856.48438 C 247.84897 -840.81772 240 -821.99998 240 -800 L 240 -320 C 240 -298.00002 247.84897 -279.18228 263.51562 -263.51562 C 279.18228 -247.84897 298.00002 -240 320 -240 L 800 -240 C 821.99998 -240 840.81772 -247.84897 856.48438 -263.51562 C 872.15103 -279.18228 880 -298.00002 880 -320 L 880 -800 C 880 -821.99998 872.15103 -840.81772 856.48438 -856.48438 C 840.81772 -872.15103 821.99998 -880 800 -880 L 320 -880 z M 320 -800 L 800 -800 L 800 -320 L 320 -320 L 320 -800 z M 80 -720 L 80 -160 C 80 -138.00002 87.848974 -119.18228 103.51562 -103.51562 C 119.18228 -87.848974 138.00002 -80 160 -80 L 720 -80 L 720 -160 L 160 -160 L 160 -720 L 80 -720 z M 514.76562 -719.0625 L 445.54688 -679.0625 L 491.17188 -600 L 399.84375 -600 L 399.84375 -520 L 491.17188 -520 L 445.54688 -440.9375 L 514.76562 -400.9375 L 560.46875 -480 L 606.09375 -400.9375 L 675.39062 -440.9375 L 629.76562 -520 L 721.09375 -520 L 721.09375 -600 L 629.76562 -600 L 675.39062 -679.0625 L 606.09375 -719.0625 L 560.46875 -640 L 514.76562 -719.0625 z " />
+</svg>

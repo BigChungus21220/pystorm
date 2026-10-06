@@ -25,20 +25,25 @@
 				<div class="right-info-item info-item" id="info_timer"></div>
 			</div>
 		</div>
-		<div class="gallery">
-			<h2>Library</h2>
-			<div class="gallery-scroll">
-				<div class="gallery-grid" id="gallery_grid">
-					<div class="gallery-item">
-						<img src="_placeholder.png" class="thumbnail"></img>
-						<div class="item-title-box">
-							<div class="item-title">placeholder</div>
+		<div class="gallery-container" id="gallery_container">
+			<button class="gallery-button" onclick="toggleGallery()">
+				<img class="white-icon" src="particle_library.svg" alt="gallery"></img>
+			</button>
+			<div class="gallery">
+				<h2>Library</h2>
+				<div class="gallery-scroll">
+					<div class="gallery-grid" id="gallery_grid">
+						<div class="gallery-item">
+							<img src="_placeholder.png" class="thumbnail"></img>
+							<div class="item-title-box">
+								<div class="item-title">placeholder</div>
+							</div>
 						</div>
 					</div>
 				</div>
-			</div>
-			<div class="bottom-panel">
-				<button class="kill-button btn-red" onclick="killServer()">Close Server</button>
+				<div class="bottom-panel">
+					<button class="kill-button btn-red" onclick="killServer()">Close Server</button>
+				</div>
 			</div>
 		</div>
 	</div>

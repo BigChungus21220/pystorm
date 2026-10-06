@@ -138,7 +138,7 @@ class Event(JSONContributor):
         contrib.contribute("sound_effect#event_name", self.sound)
         contrib.contribute("expression", self.expression)
         
-        if self.effect != None:
+        if self.effect is not None:
             contrib.merge(self.effect._contributeJson(self.name))
             
         for trigger in self.triggers:

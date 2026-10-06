@@ -10,21 +10,21 @@ class JSONContributions:
         self.contributions: dict[str, Any] = {}
     
     def contribute(self, path: str, value: Any | None):
-        if value != None:
+        if value is not None:
             if isinstance(value, str):
                 value = processMolang(value)
                 
-            if self.root != None:
+            if self.root is not None:
                 path = self.root + "#" + path
             
             self.contributions[path] = value
                 
     def contribute_item(self, path: str, value: Any | None):
-        if value != None:
+        if value is not None:
             if isinstance(value, str):
                 value = processMolang(value)
                 
-            if self.root != None:
+            if self.root is not None:
                 path = self.root + "#" + path
             
             if path not in self.contributions:
@@ -37,11 +37,11 @@ class JSONContributions:
                     raise TypeError(f"{path} is not a list")
                 
     def contribute_looping_item(self, path: str, id: Number, value: str | None):
-        if value != None:
+        if value is not None:
             if isinstance(value, str):
                 value = processMolang(value)
                 
-            if self.root != None:
+            if self.root is not None:
                 path = self.root + "#" + path
             
             if path not in self.contributions:
@@ -53,7 +53,7 @@ class JSONContributions:
                 contrib = self.contributions[path]
                 if isinstance(contrib, list):
                     idx = next((i for i, c in enumerate(contrib) if c["distance"] == id), None)
-                    if idx == None:
+                    if idx is None:
                         contrib.append({
                             "distance": id,
                             "effects": [value]
@@ -68,7 +68,7 @@ class JSONContributions:
             if isinstance(value, str):
                 value = processMolang(value)
                 
-            if self.root != None:
+            if self.root is not None:
                 path = self.root + "#" + path
                 
             self.contributions[path] = value

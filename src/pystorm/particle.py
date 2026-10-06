@@ -179,7 +179,7 @@ class ParticleTexture(JSONContributor):
         
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:particle_appearance_billboard#uv")
-        if self.animation == None:
+        if self.animation is None:
             contrib.contribute("texture_width", self.textureSize[0])
             contrib.contribute("texture_height", self.textureSize[1])
             contrib.contribute("uv", self.uv)
@@ -241,7 +241,7 @@ class ParticleMaterial(JSONContributor):
         if self.recieveLighting:
             contrib.contribute("particle_effect#components#minecraft:particle_appearance_lighting", {})
             
-        if self.tint != None:
+        if self.tint is not None:
             contrib.merge(self.tint._contributeJson())
         
         return contrib
@@ -331,7 +331,7 @@ class Particle(JSONContributor):
         contrib.merge(self.rotation._contributeJson())
         contrib.merge(self.appearance._contributeJson())
         
-        if self.collision != None:
+        if self.collision is not None:
             contrib.merge(self.collision._contributeJson())
         
         return contrib

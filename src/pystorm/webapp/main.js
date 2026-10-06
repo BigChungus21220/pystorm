@@ -290,6 +290,16 @@ function killServer() {
 	window.location.reload();
 }
 
+function toggleGallery() {
+	const gallery_container = document.getElementById("gallery_container");
+	if (gallery_container.classList.contains("open")) {
+		gallery_container.classList.remove("open");
+	} else {
+		gallery_container.classList.add("open");
+	}
+	resizeCanvas();
+}
+
 // loads a new file and caches it
 async function onFileUpdate(event) {
 	const url = (event.type == "particle") ? `${event.effect}.particle.json` : `${event.effect}.png`;

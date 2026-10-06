@@ -56,9 +56,9 @@ def startServer(timeout: float | None | Literal["default"] = None):
 
 def sendReq(url: str, method: str, content_type: str | None = None, data: bytes | None = None):
     req = urllib.request.Request(url, data=data, method=method)
-    if content_type != None:
+    if content_type is not None:
         req.add_header('Content-Type', content_type)
-    req.add_header('Content-Length', str(len(data) if data != None else 0))
+    req.add_header('Content-Length', str(len(data) if data is not None else 0))
     urllib.request.urlopen(req)
     
     
@@ -69,7 +69,7 @@ def stopServer():
     )
     
 def setTimeout(timeout: float | None):
-    if timeout == None:
+    if timeout is None:
         timeout = 1000000
     if checkStatus():
         try:
