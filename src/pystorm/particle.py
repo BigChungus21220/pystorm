@@ -6,11 +6,17 @@ from dataclasses import dataclass, field
 
 @dataclass
 class ParticleLifetime(JSONContributor):
+    """Lifetime of particle."""
     maxLifetime: MolangValue
+    """Max particle lifetime (seconds). Eval once."""
     expire: MolangValue = 0
+    """Expiration expression. Particle expires when this is true. Eval per frame."""
     expireIn: list[str] = field(default_factory=list)
+    """Blocks this particle will despawn in. Precedence over `surviveIn` undocumented."""
     surviveIn: list[str] = field(default_factory=list)
+    """Blocks this particle will not despawn in. Precedence over `expireIn` undocumented."""
     killPlane: tuple[Number, Number, Number, Number] | None = None
+    """If the particle crosses this plane it despawns. Defined by `Ax + By + Cz + D = 0`. Let `n = (A,B,C)`, then if `length(n) = 1`, `n` is the plane normal and `-Dn` is a point on the plane."""
         
     def _contributeJson(self) -> JSONContributions:
         contribExpireIn = JSONContributions()
@@ -35,14 +41,20 @@ class ParticleLifetime(JSONContributor):
 
 
 class ParticleRotation(JSONContributor, ABC):
+    """Base class for particle rotation modes. Use :class:`ParticleRotationDynamic` or :class:`ParticleRotationParametric` instead."""
     pass
 
 @dataclass
 class ParticleRotationDynamic(ParticleRotation):
+    """Rotation defined by motion parameters"""
     initialRotation: MolangNumber = 0
+    """Starting rotation of the particle (degrees). Eval once."""
     initialVelocity: MolangNumber = 0
+    """Initial rotational velocity of the particle (degrees/second). Eval once."""
     acceleration: MolangNumber = 0
+    """Rotational acceleration of the particle (degrees/second^2). Eval per frame."""
     drag: MolangNumber = 0
+    """Rotational drag (unitless). Eval undocumented. Applies as `rotation_acceleration -= rotation_rate*rotation_drag_coefficient`"""
     
     def _contributeJson(self) -> JSONContributions:
         contrib_initial = JSONContributions("particle_effect#components#minecraft:particle_initial_spin")
@@ -59,7 +71,9 @@ class ParticleRotationDynamic(ParticleRotation):
 
 @dataclass
 class ParticleRotationParametric(ParticleRotation):
+    """Rotation defined by a molang expression."""
     rotation: MolangNumber = 0
+    """Particle rotation. Eval per frame."""
         
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:particle_motion_parametric")
@@ -69,13 +83,20 @@ class ParticleRotationParametric(ParticleRotation):
 
 
 class ParticleTranslation(JSONContributor, ABC):
+    """Base class for particle translation (movement) modes. Use :class:`ParticleTranslationDynamic` or :class:`ParticleTranslationParametric` instead."""
     pass
 
 @dataclass
 class ParticleTranslationDynamic(ParticleTranslation):
+    """Translation defined by motion parameters."""
+    direction: Literal["inwards", "outwards"] | MolangVector3 = "outwards"
+    """Initial velocity direction. Eval once."""
     initialSpeed: MolangNumber = 0
+    """Initial velocity magnitude (blocks/sec). Eval once."""
     acceleration: MolangVector3 = (0, 0, 0)
+    """Acceleration vector (blocks/sec^2). Eval per frame."""
     drag: MolangNumber = 0
+    """Linear drag. Eval per frame. Applied as `acceleration -= linear_drag_coefficient*velocity`"""
         
     def _contributeJson(self) -> JSONContributions:
         contrib_initial = JSONContributions()
@@ -85,14 +106,24 @@ class ParticleTranslationDynamic(ParticleTranslation):
         contrib.contribute_or_default("linear_acceleration", self.acceleration, (0, 0, 0))
         contrib.contribute_or_default("linear_drag_coefficent", self.drag, 0)
         
+        contrib_shape = JSONContributions("particle_effect#components")
+        contrib_shape.contribute_or_default("minecraft:emitter_shape_disk?direction", self.direction, "outwards")
+        contrib_shape.contribute_or_default("minecraft:emitter_shape_box?direction", self.direction, "outwards")
+        contrib_shape.contribute_or_default("minecraft:emitter_shape_entity_aabb?direction", self.direction, "outwards")
+        contrib_shape.contribute_or_default("minecraft:emitter_shape_point?direction", self.direction, "outwards")
+        contrib_shape.contribute_or_default("minecraft:emitter_shape_sphere?direction", self.direction, "outwards")
+        
         contrib.merge(contrib_initial)
         
         return contrib
 
 @dataclass
 class ParticleTranslationParametric(ParticleTranslation):
+    """Translation defined by a molang expression. May be buggy."""
     position: MolangVector3 = (0, 0, 0)
+    """Particle translation relative to the emitter. If used as an attached particle without `localPosition = true`, position is relative to the world origin. Eval per frame."""
     direction: MolangVector3 | None = None
+    """Particle orientation for use with :class:`ParticleFacingVelocity` (I think). Eval per frame."""
         
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:particle_motion_parametric")
@@ -105,11 +136,17 @@ class ParticleTranslationParametric(ParticleTranslation):
 
 @dataclass
 class ParticleCollision(JSONContributor):
+    """Particle collision parameters."""
     enabled: MolangValue = True
+    """Whether to do collisions. Eval per frame."""
     drag: Number = 0
+    """Drag while in contact with the surface. Units claim to be blocks/second, but this doesn't make sense."""
     restitution: Number = 0
+    """Proportion of speed retained on impact. `speed' = |speed*restitution|`"""
     radius: Number = 0
+    """Collision radius."""
     expireOnContact: bool = False
+    """Whether the particle should expire on collision."""
         
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:particle_motion_collision")
@@ -124,14 +161,20 @@ class ParticleCollision(JSONContributor):
 
 
 class UVAnimation(JSONContributor, ABC):
+    """Animation mode base class. Use :class:`UVAnimationFPS` or :class:`UVAnimationLifetime`"""
     pass
 
 @dataclass
 class UVAnimationFPS(UVAnimation):
+    """Animation with a set fps."""
     uvStep: tuple[Number, Number]
+    """Pixels in each direction to step each frame."""
     frameCount: MolangNumber
+    """Total number of frames."""
     fps: float
+    """Frames per second."""
     loopFrames: bool = False
+    """Whether to loop the animation or hold on the last frame."""
         
     def toLifetime(self) -> float:
         if isinstance(self.frameCount, float) or isinstance(self.frameCount, int):
@@ -148,8 +191,11 @@ class UVAnimationFPS(UVAnimation):
         
 @dataclass
 class UVAnimationLifetime(UVAnimation):
+    """Animation which stretches to the particle lifetime."""
     uvStep: tuple[Number, Number]
+    """Pixels in each direction to step each frame."""
     frameCount: MolangNumber
+    """Total number of frames."""
 
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:particle_appearance_billboard#uv#flipbook")
@@ -162,11 +208,17 @@ class UVAnimationLifetime(UVAnimation):
 
 @dataclass
 class ParticleTexture(JSONContributor):
+    """Descriptor for the particle's texture."""
     texture: str
+    """Texture resource path. Eg: `textures/particle/particles`"""
     textureSize: tuple[int, int]
+    """Size of the texture in pixels."""
     uv: MolangVector2
+    """Top left corner of first frame in pixels if `animation != None`, evaluated once. Otherwise the top left corner of the uv, evaluated per frame."""
     uvSize: MolangVector2
+    """Size of each frame in pixels. Eval per frame."""
     animation: UVAnimation | None = None
+    """Animation mode. None for a static texture"""
         
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:particle_appearance_billboard#uv")
@@ -192,11 +244,14 @@ class ParticleTexture(JSONContributor):
 
 
 class ParticleTint(JSONContributor, ABC):
+    """Base class for animation modes. Use :class:`ParticleTintExpression` or :class:`ParticleTintGradient` instead."""
     pass
 
 @dataclass
 class ParticleTintExpression(ParticleTint):
+    """Particle tint defined by a molang expression."""
     color: Color
+    """Color tint applied by multiplication. (0,0,0,0) is black, 0 opacity, (1,1,1,1) is white, full opacity. Eval per frame."""
     
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:particle_appearance_tinting")
@@ -205,8 +260,11 @@ class ParticleTintExpression(ParticleTint):
 
 @dataclass
 class ParticleTintGradient(ParticleTint):
+    """Particle tint defined by a gradient."""
     interpolant: MolangNumber
+    """Interpolant or \"time\" value. Eval per frame."""
     colors: dict[Number, Color]
+    """Keyframes to interpolate between. If you define a color at 0.5, and `interpolant = 0.5`, then the tint will be the color at 0.5. The interpolation method is not documented."""
 
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:particle_appearance_tinting#color")
@@ -218,9 +276,13 @@ class ParticleTintGradient(ParticleTint):
 
 @dataclass
 class ParticleMaterial(JSONContributor):
+    """Particle material properties."""
     material: str = "particles_alpha"
+    """Material to use. Vanilla options are `particles_alpha`, `particles_blend`, `particles_add`, `particles_opaque`, but others can be defined (see https://wiki.bedrock.dev/visuals/materials)."""
     recieveLighting: bool = False
+    """Whether lighting should be applied to this particle. Keep disabled for glowing particles."""
     tint: ParticleTint | None = None
+    """A tint to apply to the particle."""
         
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions()
@@ -249,14 +311,31 @@ type FacingMode = Literal[
     "emitter_transform_yz",
     "lookat_direction"
 ]
+"""Defines how a particle is oriented. \n
+rotate_xyz - Particle plane aligns with camera plane.\n
+rotate_y - Particle plane aligns with camera plane, maintaining the y-axis as a tangent vector. \n
+lookat_xyz - Particle rotates to face camera. \n
+lookat_y - Particle rotates to face camera, maintaining the y-axis as a tangent vector. \n
+direction_x - Particle faces +x direction. \n
+direction_y - Particle faces +y direction. \n
+direction_z - Particle faces +z direction or the vector defined as the particle direction. \n
+emitter_transform_xy - Face tangent to emitter xy plane. \n
+emitter_transform_xz - Face tangent to emitter xz plane. \n
+emitter_transform_yz - Face tangent to emitter yz plane. \n
+lookat_direction - Like lookat_y, but particle faces the vector defined as the particle direction. \n
+"""
 
 class ParticleFacing(JSONContributor, ABC):
+    """Base class for particle facing modes. Use :class:`ParticleFacingVelocity` or :class:`ParticleFacingExpression` instead."""
     pass
 
 @dataclass
 class ParticleFacingVelocity(ParticleFacing):
+    """Particle facing defined by velocity."""
     facingMode: FacingMode = "rotate_xyz"
+    """How to orient the particle with respect to the camera / world. Note: not all support orientation by direction/velocity. See :class:`FacingMode`."""
     minVelocity: Number = 0.01
+    """Minimum velocity to apply an orientation. Defaults to (0, 0, 1) when velocity is too low."""
         
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:particle_appearance_billboard")
@@ -267,8 +346,11 @@ class ParticleFacingVelocity(ParticleFacing):
 
 @dataclass
 class ParticleFacingExpression(ParticleFacing):
+    """Particle facing defined by custom direction."""
     facingMode: FacingMode = "rotate_xyz"
+    """How to orient the particle with respect to the camera / world. Note: not all support orientation by direction/velocity. See :class:`FacingMode`."""
     direction: MolangVector3 = (0, 1, 0)
+    """Direction vector. If `facingMode = \"direction_z\"`, this direction defines the normal of the particle plane."""
         
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:particle_appearance_billboard")
@@ -282,10 +364,15 @@ class ParticleFacingExpression(ParticleFacing):
 
 @dataclass
 class ParticleAppearance(JSONContributor):
+    """Defines particle appearance."""
     texture: ParticleTexture
+    """Particle texture descriptor."""
     material: ParticleMaterial
+    """Particle material properties."""
     size: MolangVector2
+    """Half size of particle rect in blocks."""
     facing: ParticleFacing
+    """Particle facing mode."""
         
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:particle_appearance_billboard")
@@ -301,11 +388,17 @@ class ParticleAppearance(JSONContributor):
 
 @dataclass
 class Particle(JSONContributor):
+    """Particle behavior and appearance."""
     lifetime: ParticleLifetime
+    """Particle despawning rules."""
     motion: ParticleTranslation
+    """Particle motion settings."""
     rotation: ParticleRotation
+    """Particle rotation settings."""
     appearance: ParticleAppearance
+    """Particle appearance settings."""
     collision: ParticleCollision | None = None
+    """Particle collision settings."""
         
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions()

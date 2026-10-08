@@ -92,8 +92,6 @@ class EmitterRateSteady(EmitterRate):
 
 
 
-type EmitterShapeDirection = Literal["inwards", "outwards"] | MolangVector3
-
 class EmitterShape(JSONContributor, ABC):
     """Base class for emitter shapes. Use :class:`EmitterShapePoint`, :class:`EmitterShapeDisc`, :class:`EmitterShapeSphere`, :class:`EmitterShapeBox`, or :class:`EmitterShapeEntityAABB` instead"""
     pass
@@ -109,8 +107,6 @@ class EmitterShapeDisc(EmitterShape):
     """Radius of the disk. Eval once per particle."""
     surfaceOnly: bool = False
     """Whether to emit only from the circle around the disk."""
-    direction: EmitterShapeDirection = "outwards"
-    """Direction of initial particle velocity. Eval once per frame."""
         
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:emitter_shape_disk")
@@ -118,7 +114,6 @@ class EmitterShapeDisc(EmitterShape):
         contrib.contribute_or_default("offset", self.offset, (0, 0, 0))
         contrib.contribute_or_default("radius", self.radius, 1)
         contrib.contribute_or_default("surface_only", self.surfaceOnly, False)
-        contrib.contribute_or_default("direction", self.direction, "outwards")
         return contrib
 
 @dataclass
@@ -130,15 +125,12 @@ class EmitterShapeBox(EmitterShape):
     """Offset of box center. Eval once per particle."""
     surfaceOnly: bool = False
     """Whether to emit only from the surface of the box."""
-    direction: EmitterShapeDirection = "outwards"
-    """Direction of initial particle velocity. Eval once per frame."""
         
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:emitter_shape_box")
         contrib.contribute("half_dimensions", self.halfDimensions)
         contrib.contribute_or_default("offset", self.offset, (0, 0, 0))
         contrib.contribute_or_default("surface_only", self.surfaceOnly, False)
-        contrib.contribute_or_default("direction", self.direction, "outwards")
         return contrib
 
 @dataclass
@@ -146,13 +138,10 @@ class EmitterShapeEntityAABB(EmitterShape):
     """Emits from the entity bounding box."""
     surfaceOnly: bool = False
     """Whether to emit only from the surface of the bounding box."""
-    direction: EmitterShapeDirection = "outwards"
-    """Direction of initial particle velocity. Eval once per frame."""
         
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:emitter_shape_entity_aabb")
         contrib.contribute_or_default("surface_only", self.surfaceOnly, False)
-        contrib.contribute_or_default("direction", self.direction, "outwards")
         return contrib
 
 @dataclass
@@ -160,13 +149,10 @@ class EmitterShapePoint(EmitterShape):
     """Emits from a point."""
     offset: MolangVector3 = (0, 0, 0)
     """Offset of particle. Eval once per particle."""
-    direction: MolangVector3 = (0, 0, 0)
-    """Direction of initial particle velocity. Eval once per frame."""
         
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:emitter_shape_point")
         contrib.contribute_or_default("offset", self.offset, (0, 0, 0))
-        contrib.contribute_or_default("direction", self.direction, (0, 0, 0))
         return contrib
 
 @dataclass
@@ -178,15 +164,12 @@ class EmitterShapeSphere(EmitterShape):
     """Sphere radius. Eval once per particle."""
     surfaceOnly: bool = False
     """Whether to emit only from the surface of the sphere."""
-    direction: EmitterShapeDirection = "outwards"
-    """Direction of initial particle velocity. Eval once per frame."""
         
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:emitter_shape_sphere")
         contrib.contribute_or_default("offset", self.offset, (0, 0, 0))
         contrib.contribute_or_default("radius", self.radius, 1)
         contrib.contribute_or_default("surface_only", self.surfaceOnly, False)
-        contrib.contribute_or_default("direction", self.direction, "outwards")
         return contrib
     
     

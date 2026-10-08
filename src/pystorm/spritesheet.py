@@ -4,7 +4,7 @@ from pathlib import Path
 from PIL import Image, ImageSequence
 from .molang_types import Number
 from .particle import ParticleTexture, UVAnimationFPS, UVAnimationLifetime, ParticleAppearance
-from typing import Literal, Any
+from typing import Literal, Any, Callable, Self
 import numpy as np
 from dataclasses import dataclass
 from collections.abc import Buffer, Sequence
@@ -244,6 +244,11 @@ class SpriteSheet:
             frames[i].seek(0)
         
         return cls.fromFrames(frames, tileDirection=tileDirection)
+    
+    def editFrames(self, callback: Callable[[FramesType], FramesType]) -> Self:
+        """Applies a function to the frames of the spritesheet."""
+        self.frames = callback(self.frames) # type: ignore
+        return self
     
     def halfSize(self) -> tuple[float, float]:
         """The half dimensions of the particle to match Minecraft's pixel size. Use directly with :method:`ParticleAppearance`.
