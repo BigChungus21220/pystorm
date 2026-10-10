@@ -12,8 +12,7 @@ effect = ParticleEffect(
         lifetime = EmitterLifetimeOnce(1),
         rate = EmitterRateInstant(1),
         shape = EmitterShapePoint(
-            offset=(0,1,0),
-            direction=(1,0,0)
+            offset=(0,1,0)
         )
     ),
     particle = Particle(
@@ -21,6 +20,7 @@ effect = ParticleEffect(
             maxLifetime=5
         ),
         motion = ParticleTranslationDynamic(
+            direction=(1,0,0),
             initialSpeed=1,
             acceleration=(0,0,1),
             drag=1
@@ -53,8 +53,7 @@ effect2 = ParticleEffect(
         lifetime = EmitterLifetimeOnce(1),
         rate = EmitterRateInstant(1),
         shape = EmitterShapePoint(
-            offset=(0,1,0),
-            direction=(1,0,0)
+            offset=(0,1,0)
         )
     ),
     particle = Particle(
@@ -62,6 +61,7 @@ effect2 = ParticleEffect(
             maxLifetime=5
         ),
         motion = ParticleTranslationDynamic(
+            direction=(1,0,0),
             initialSpeed=1,
             acceleration=(0,0,1),
             drag=1

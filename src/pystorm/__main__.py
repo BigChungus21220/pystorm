@@ -1,7 +1,7 @@
 import argparse
 import json
 import sys
-from .preview import previewEffect, setTimeout, setView, queryPID, stopServer, startServer, checkStatus
+from .interface import previewEffect, setTimeout, setView, queryPID, stopServer, startServer, checkStatus, removeEffect, clearEffects, galleryFromFolder
 
 def main():
     parser = argparse.ArgumentParser(description="Command line interface for preview server.")
@@ -15,6 +15,13 @@ def main():
     # setView
     setview_parser = subparsers.add_parser("setView", help="Set the current view.")
     setview_parser.add_argument("identifier", type=str, help="View identifier")
+    
+    # removeEffect
+    removeeffect_parser = subparsers.add_parser("removeEffect", help="Remove one or more effects.")
+    removeeffect_parser.add_argument("--identifier", action="append", help="effect identifier")
+
+    # clearEffects
+    subparsers.add_parser("clearEffects", help="Remove all effects.")
 
     # setTimeout
     settimeout_parser = subparsers.add_parser("setTimeout", help="Set the preview timeout.")
@@ -32,6 +39,10 @@ def main():
 
     # checkStatus
     subparsers.add_parser("checkStatus", help="Check the preview server status.")
+    
+    # loadGallery
+    loadgallery_parser = subparsers.add_parser("loadGallery", help="Load gallery from particles in folder(s).")
+    loadgallery_parser.add_argument("--folder", action="append", help="Folder path")
 
     args = parser.parse_args()
 
@@ -49,36 +60,26 @@ def main():
                     particle_dict = json.load(f)
                 with open(t_path, 'rb') as f:
                     texture_bytes = f.read()
-                previewEffect(particle_dict, texture_bytes)
+                print(previewEffect(particle_dict, texture_bytes)[1])
             except Exception as e:
                 print(f"Error processing {p_path} or {t_path}: {e}", file=sys.stderr)
                 sys.exit(1)
         print(f"Sent {len(particles)} particles to server.")
 
     elif args.command == "setView":
-        url = setView(args.identifier)
-        if url:
-            print(f"Now previewing {args.identifier} at {url}")
-        else:
-            print(f"Error")
+        print(setView(args.identifier)[1])
 
     elif args.command == "setTimeout":
-        setTimeout(args.timeout)
-        print(f"Set server timeout to {args.timeout} seconds.")
+        print(setTimeout(args.timeout)[1])
 
     elif args.command == "queryPID":
-        print(f"Server running on PID: {queryPID()}.")
+        print(queryPID()[1])
 
     elif args.command == "startServer":
-        url = startServer(timeout=args.timeout)
-        if url:
-            print(f"Server is up at {url}")
+        print(startServer(timeout=args.timeout)[1])
 
     elif args.command == "stopServer":
-        if stopServer():
-            print("Server stopped.")
-        else:
-            print("Server already stopped.")
+        print(stopServer()[1])
 
     elif args.command == "checkStatus":
         url = checkStatus()
@@ -86,6 +87,19 @@ def main():
             print(f"Server is up at {url}")
         else:
             print("Server is down.")
+            
+    elif args.command == "removeEffect":
+        particles = args.identifier or []
+        for particle in particles:
+            print(removeEffect(particle)[1])
+            
+    elif args.command == "clearEffects":
+        print(clearEffects()[1])
+        
+    elif args.command == "loadGallery":
+        folders: list[str] = args.folder or []
+        for folder in folders:
+            print(galleryFromFolder(folder)[1])
 
 if __name__ == "__main__":  
     main()

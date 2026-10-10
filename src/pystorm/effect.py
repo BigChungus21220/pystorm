@@ -21,6 +21,7 @@ class ParticleEffect:
     """Variable curves"""
         
     def asJSON(self) -> dict:
+        """Returns the json dict for this particle."""
         contrib = JSONContributions()
         contrib.contribute("particle_effect#description#identifier", self.identifier)
         contrib.contribute("format_version", "1.10.0")
@@ -37,9 +38,11 @@ class ParticleEffect:
         return contrib.asJson()
     
     def asStr(self) -> str:
+        """Returns the json string for this particle."""
         json = self.asJSON()
         return serializePretty(json)
     
     def saveAs(self, particle_path: Path):
+        """Saves this particle's json to a file."""
         with open(particle_path, "w") as file:
             file.write(self.asStr())

@@ -1,10 +1,20 @@
- - [x] Separate server into own process
-     - [ ] Allow port to be set
+ - [ ] rework atlas system
+ - [ ] Separate server into own process
+     - [x] Allow port to be set
+     - [x] Allow clearing the server particle cache
+     - [x] Allow removals from the client library
+     - [ ] Add access to client requests (maybe)
      - [ ] Improve gallery text truncation strategy
      - [ ] Allow auto indexing particles in folder
-        - show source file location
+        - [ ] show source file location
+ - [ ] Add / update readme examples
+     - basic usage
+     - spritesheets & image manipulation
+     - previewing
+     - server command line
+     - examples (in a separate folder)
  - [x] Add flag for whether to trigger previews
- - [ ] Add image manipulation helpers
+ - [x] Add image manipulation helpers
     - get frames / set frames
     - sync texture with frames
     - common transform / color operations

@@ -102,7 +102,7 @@ class EmitterShapeDisc(EmitterShape):
     planeNormal: MolangVector3 = (0, 1, 0)
     """Disk normal (the direction perpendicular / orthogonal to the surface). Eval not documented."""
     offset: MolangVector3 = (0, 0, 0)
-    """Offset of disk center. Eval once per particle."""
+    """Offset of disk center. Eval once per particle. X and Y values are negated when attached to a locator."""
     radius: MolangNumber = 1
     """Radius of the disk. Eval once per particle."""
     surfaceOnly: bool = False
@@ -122,7 +122,7 @@ class EmitterShapeBox(EmitterShape):
     halfDimensions: MolangVector3
     """Half dimensions of the box, centered on the emitter origin. Eval not documented."""
     offset: MolangVector3 = (0, 0, 0)
-    """Offset of box center. Eval once per particle."""
+    """Offset of box center. Eval once per particle. X and Y values are negated when attached to a locator."""
     surfaceOnly: bool = False
     """Whether to emit only from the surface of the box."""
         
@@ -148,7 +148,7 @@ class EmitterShapeEntityAABB(EmitterShape):
 class EmitterShapePoint(EmitterShape):
     """Emits from a point."""
     offset: MolangVector3 = (0, 0, 0)
-    """Offset of particle. Eval once per particle."""
+    """Offset of particle. Eval once per particle. X and Y values are negated when attached to a locator."""
         
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:emitter_shape_point")
@@ -159,7 +159,7 @@ class EmitterShapePoint(EmitterShape):
 class EmitterShapeSphere(EmitterShape):
     """Emits from a sphere."""
     offset: MolangVector3 = (0, 0, 0)
-    """Offset of sphere. Eval once per particle."""
+    """Offset of sphere. Eval once per particle. X and Y values are negated when attached to a locator."""
     radius: MolangNumber = 1
     """Sphere radius. Eval once per particle."""
     surfaceOnly: bool = False

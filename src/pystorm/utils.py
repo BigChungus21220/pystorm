@@ -1,5 +1,109 @@
 import re
 from compact_json import Formatter
+from pathlib import Path
+import json
+from dataclasses import dataclass
+import os
+
+@dataclass
+class _IndexedParticle:
+    path: Path
+    identifier: str
+    texture_str: str | None
+    texture_path: Path | None
+    texture_dist: float = 999.0
+    
+from pathlib import Path
+
+def tree_distance(path1: str | Path, path2: str | Path) -> int:
+    # .resolve() ensures paths are absolute and resolves any symlinks or ".."
+    p1_parts = Path(path1).resolve().parts
+    p2_parts = Path(path2).resolve().parts
+    
+    # Find how many path parts they share from the root
+    common_len = 0
+    for part1, part2 in zip(p1_parts, p2_parts):
+        if part1 == part2:
+            common_len += 1
+        else:
+            break
+            
+    # Distance = (steps from path1 up to common parent) + (steps from parent down to path2)
+    return (len(p1_parts) - common_len) + (len(p2_parts) - common_len)
+    
+
+def indexFolder(folder: Path | str, max_distance: int | None = None, search_referenced: bool = True) -> list[tuple[Path, Path | None]]:
+    """Finds particle effects in a folder and matches them to textures.\n
+    Only searches for `.json` and `.png`. `O(nm)`, where `n` is number of valid particle files, and `m` is number of png files.
+
+    Args:
+        folder (Path | str): Folder path to search
+        
+    Returns:
+        (list[tuple[Path, Path]]): Particle path, texture path pairs
+    """
+    
+    if isinstance(folder, str):
+        folder = Path(folder) 
+    
+    particles: list[_IndexedParticle] = []
+    
+    # register all particles in the folder
+    for file in folder.rglob("*.json", case_sensitive=False):
+        if not file.is_file():
+            continue
+        
+        try:
+            with open(file, 'r', encoding='utf-8') as f:
+                particle_json: dict = json.load(f)
+            
+            # check that it is probably a valid particle
+            if particle_json.get("format_version") == "1.10.0":
+                description: dict = particle_json.get("particle_effect", {}).get("description", {})
+                identifier = description.get("identifier")
+                if not isinstance(identifier, str):
+                    continue
+                texture = description.get("basic_render_parameters", {}).get("texture")
+                if not isinstance(texture, str):
+                    texture = None
+                particles.append(_IndexedParticle(file, identifier, texture, None))
+                
+        except Exception:
+            pass
+            
+    # Find the closest texture for each particle
+    for file in folder.rglob("*.png", case_sensitive=False):
+        if not file.is_file():
+            continue
+        
+        name = file.stem
+        for particle in particles:
+            dist = 999
+            # regular name matching
+            if particle.path.stem == name:
+                dist = tree_distance(file, particle.path)
+            
+            # referenced name matching
+            # snap path to referenced node
+            if search_referenced and particle.texture_str is not None:
+                full_path = file.resolve().with_suffix("")
+                
+                partial_parts = Path(particle.texture_str).parts
+                full_parts = full_path.parts
+                
+                if partial_parts and len(partial_parts) <= len(full_parts):
+                    if full_parts[-len(partial_parts):] == partial_parts:
+                        snap_path = Path(*full_path.parts[:-len(partial_parts)])
+                        
+                        dist = min(dist, tree_distance(snap_path, particle.path))
+                
+            # update distance
+            if (max_distance is None or dist <= max_distance) and dist < particle.texture_dist:
+                particle.texture_path = file
+                particle.texture_dist = dist
+    
+    return [(particle.path, particle.texture_path) for particle in particles]            
+
 
 # this function was (mostly) written by Gemini
 def processMolang(expression: str):

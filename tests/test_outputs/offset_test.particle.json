@@ -1,0 +1,46 @@
+{
+    "format_version": "1.10.0", 
+    "particle_effect": {
+        "description": {
+            "identifier": "test:offset_test", 
+            "basic_render_parameters": {
+                "material": "particles_alpha", 
+                "texture": "textures/animation"
+            }
+        }, 
+        "components": {
+            "minecraft:emitter_lifetime_once": {
+                "active_time": 1
+            }, 
+            "minecraft:emitter_rate_instant": {
+                "num_particles": 1
+            }, 
+            "minecraft:emitter_shape_point": {
+                "offset": [1, 0.5, 1]
+            }, 
+            "minecraft:particle_appearance_billboard": {
+                "direction": {
+                    "custom_direction": [0, 1, 0], 
+                    "mode": "custom"
+                }, 
+                "facing_camera_mode": "lookat_y", 
+                "size": [0.5, 0.5], 
+                "uv": {
+                    "flipbook": {
+                        "base_UV": [0, 0], 
+                        "frames_per_second": 16, 
+                        "loop": true, 
+                        "max_frame": 53, 
+                        "size_UV": [16, 16], 
+                        "step_UV": [16, 0]
+                    }, 
+                    "texture_height": 16, 
+                    "texture_width": 848
+                }
+            }, 
+            "minecraft:particle_lifetime_expression": {
+                "max_lifetime": 5
+            }
+        }
+    }
+}

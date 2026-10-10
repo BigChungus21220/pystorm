@@ -1,8 +1,11 @@
 const evtSource = new EventSource("/events");
 
+let PLACEHOLDER = "_placeholder"
+
+// required due to event system
 let effectLock = new RWLock();
 let particleCache = undefined;
-const effects = {};
+const effects = new Map();
 let activeEffect = undefined;
 const View = {};
 
@@ -17,14 +20,14 @@ window.addEventListener('resize', resizeCanvas, false);
 async function initializeApp() {
 	particleCache = await caches.open('particle-cache')
 	await effectLock.write(async function(){
-		await getEffect("_placeholder", false);
+		await getEffect(PLACEHOLDER, false);
 	});
 
 	sceneSetup();
 	resizeCanvas();
 
 	await effectLock.write(async function(){
-		await setActiveEffect((await loadJSON("active.json")).effect)
+		await setActiveEffect((await loadJSON("active.json")).active)
 	});
 
 	// start event listeners
@@ -36,11 +39,19 @@ async function initializeApp() {
 		onViewChange(JSON.parse(e.data));
 	});
 
+	evtSource.addEventListener("remove_effect", (e) => {
+		onRemoveEffect(JSON.parse(e.data));
+	});
+
+	evtSource.addEventListener("clear_library", (e) => {
+		onClearLibrary(JSON.parse(e.data));
+	});
+
 	// create gallery
 	const registry = await loadJSON("effects.json");
 	await effectLock.write(async function(){
 		for (const [effect, data] of Object.entries(registry)) {
-			if (!(effect in effects)) {
+			if (!effects.has(effect)) {
 				await getEffect(effect, false);
 			}
 		}
@@ -53,35 +64,37 @@ async function initializeApp() {
 // returns [particle json, base64 texture]
 async function getEffect(effect, doBuildGallery=true) {
     const particle_url = `${effect}.particle.json`;
+	const additional_url = `${effect}.additional.json`;
     const texture_url = `${effect}.png`;
 
 	let update = false
-	if (effect in effects) {
+	if (effects.has(effect)) {
 		try {
-			const [particle_res, texture_res] = await Promise.all([
+			const [particle_res, additional_res, texture_res] = await Promise.all([
 				particleCache.match(particle_url),
+				particleCache.match(additional_url),
 				particleCache.match(texture_url)
 			]);
 
-			if (!particle_res || !texture_res) {
+			if (!particle_res || !additional_res || !texture_res) {
 				throw new Error("Cache miss");
 			}
 
 			particle = await particle_res.json();
-			
+			additional = await additional_res.json();
 			texture = await texture_res.text();
 
 		} catch (e) {
 			console.error(`Cache miss on effect: '${effect}'. Using fallback.`);
-			return await getEffect("_placeholder");
+			return await getEffect(PLACEHOLDER);
 		}
 
 	} else {
 		try {
-			[particle, texture] = await Promise.all([loadJSON(particle_url), loadPNG(texture_url)]);
+			[particle, additional, texture] = await Promise.all([loadJSON(particle_url), loadJSON(additional_url), loadPNG(texture_url)]);
 		} catch (e) {
 			console.error(`Request failed on effect: '${effect}'. Using fallback.`);
-			return await getEffect("_placeholder");
+			return await getEffect(PLACEHOLDER);
 		}
 
 		update = true
@@ -95,21 +108,27 @@ async function getEffect(effect, doBuildGallery=true) {
 			})
 		);
 		particleCache.put(
+			additional_url, 
+			new Response(JSON.stringify(additional), { 
+				headers: { 'Content-Type': 'application/json' } 
+			})
+		);
+		particleCache.put(
 			texture_url, 
 			new Response(texture)
 		);
 
-		effects[effect] = {
+		effects.set(effect, {
 			identifier: particle.particle_effect.description.identifier,
 			thumbnail: undefined
-		};
+		})
 
 		if (doBuildGallery) {
 			await buildGallery();
 		}
 	}
 
-	return [particle, texture]
+	return [particle, additional, texture]
 }
 
 // must be write locked
@@ -118,17 +137,18 @@ async function buildGallery() {
 	const grid = document.getElementById("gallery_grid");
 
 	let content = "";
-	for (const [effect, data] of Object.entries(effects).sort((a, b) => a[0].localeCompare(b[0]))) {
+	for (const [effect, data] of [...effects.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
+
 		if (data.thumbnail === undefined) {
-			const [particle, texture] = await getEffect(effect);
+			const [particle, additional, texture] = await getEffect(effect);
 
 			const id = particle.particle_effect.description.identifier;
 			if (id == '') continue;
 
 			data.thumbnail = await renderThumbnail(particle, texture);
 
-			effects[effect].thumbnail = data.thumbnail;
-			effects[effect].identifier = id;
+			effects.get(effect).thumbnail = data.thumbnail;
+			effects.get(effect).identifier = id;
 		}
 		const classes = activeEffect == effect ? "gallery-item active" : "gallery-item";
 		content += `
@@ -136,6 +156,9 @@ async function buildGallery() {
 			<img src="${data.thumbnail}" class="thumbnail"></img>
 			<div class="item-title-box">
 				<div class="item-title">${data.identifier}</div>
+			</div>
+			<div class="item-source-box">
+				<div class="item-source">${"source" in additional ? additional.source.split('.', 1)[0] : ""}</div>
 			</div>
 		</div>`;
 	}
@@ -182,7 +205,7 @@ function animate() {
 // must be write locked
 // updates the displayed effect given a url safe id
 async function setActiveEffect(effect) {
-	let [particle, texture] = await getEffect(effect);
+	let [particle, additional, texture] = await getEffect(effect);
 
 	activeEffect = effect;
 
@@ -302,7 +325,7 @@ function toggleGallery() {
 
 // loads a new file and caches it
 async function onFileUpdate(event) {
-	const url = (event.type == "particle") ? `${event.effect}.particle.json` : `${event.effect}.png`;
+	const url = (event.type == "particle") ? `${event.effect}.particle.json` : ((event.type == "aditional") ? `${event.effect}.additional.json` : `${event.effect}.png`);
 	try {
 		await effectLock.write(async function(){
 			if (event.type == "particle") {
@@ -315,20 +338,29 @@ async function onFileUpdate(event) {
 					})
 				);
 
-				effects[event.effect] = {
+				effects.set(event.effect, {
 					identifier: particle.particle_effect.description.identifier,
 					thumbnail: undefined
-				};
+				});
 
+			} else if (event.type == "additional") {
+				const url = `${event.effect}.addtional.json`;
+				const addtional = await loadJSON(url);
+				particleCache.put(
+					url, 
+					new Response(JSON.stringify(additional), { 
+						headers: { 'Content-Type': 'application/json' } 
+					})
+				);
 			} else {
 				const url = `${event.effect}.png`;
 				const texture = await loadPNG(url);
 				particleCache.put(url, new Response(texture));
 
-				effects[event.effect].thumbnail = undefined;
+				effects.get(event.effect).thumbnail = undefined;
 			}
 
-			if (activeEffect == event.effect || activeEffect == "_placeholder") {
+			if (activeEffect == event.effect || activeEffect == PLACEHOLDER) {
 				await setActiveEffect(event.effect);
 			}
 
@@ -342,7 +374,40 @@ async function onFileUpdate(event) {
 
 async function onViewChange(event) {
 	await effectLock.write(async function(){
-		await setActiveEffect(event.effect)
+		await setActiveEffect(event.active)
+	})
+}
+
+async function onClearLibrary(event) {
+	await effectLock.write(async function(){
+		let placeholder = effects.get(PLACEHOLDER)
+		effects.clear()
+		effects.set(PLACEHOLDER, placeholder)
+
+		for (request in await particleCache.keys()) {
+			if (request.url != `${PLACEHOLDER}.particle.json` && request.url != `${PLACEHOLDER}.png`) {
+				particleCache.delete(request)
+			}
+		}
+
+		await setActiveEffect(event.active)
+
+		await buildGallery()
+	})
+}
+
+async function onRemoveEffect(event) {
+	await effectLock.write(async function(){
+		if (event.effect != PLACEHOLDER){
+			effects.delete(event.effect)
+
+			particleCache.delete(`${event.effect}.particle.json`)
+			particleCache.delete(`${event.effect}.png`)
+
+			await setActiveEffect(event.active)
+
+			await buildGallery()
+		}
 	})
 }
 

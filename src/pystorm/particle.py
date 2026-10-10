@@ -367,12 +367,12 @@ class ParticleAppearance(JSONContributor):
     """Defines particle appearance."""
     texture: ParticleTexture
     """Particle texture descriptor."""
-    material: ParticleMaterial
-    """Particle material properties."""
     size: MolangVector2
     """Half size of particle rect in blocks."""
-    facing: ParticleFacing
+    facing: ParticleFacing = field(default_factory=ParticleFacingExpression)
     """Particle facing mode."""
+    material: ParticleMaterial = field(default_factory=ParticleMaterial)
+    """Particle material properties."""
         
     def _contributeJson(self) -> JSONContributions:
         contrib = JSONContributions("particle_effect#components#minecraft:particle_appearance_billboard")
@@ -391,12 +391,12 @@ class Particle(JSONContributor):
     """Particle behavior and appearance."""
     lifetime: ParticleLifetime
     """Particle despawning rules."""
-    motion: ParticleTranslation
-    """Particle motion settings."""
-    rotation: ParticleRotation
-    """Particle rotation settings."""
     appearance: ParticleAppearance
     """Particle appearance settings."""
+    motion: ParticleTranslation = field(default_factory=ParticleTranslationDynamic)
+    """Particle motion settings."""
+    rotation: ParticleRotation = field(default_factory=ParticleRotationDynamic)
+    """Particle rotation settings."""
     collision: ParticleCollision | None = None
     """Particle collision settings."""
         

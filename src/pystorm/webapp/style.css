@@ -126,7 +126,7 @@ h2 {
 	position: relative;
 	display: inline-block;
 	background-color: #3a3a3a;
-	border: none;
+	border: 1px solid grey;
 	margin: 0;
 	border-radius: 3px;
 	box-sizing: border-box;
@@ -155,6 +155,32 @@ h2 {
 	border-radius: 3px;
 }
 
+.item-source-box {
+	position: absolute;
+	left: 8px;
+	bottom: 8px;
+	margin: 0;
+	padding: 0;
+	width: calc(100% - 16px);
+	font-size: xx-small;
+
+	container-type: inline-size;
+}
+
+.item-source {
+	font-weight: bold;
+	width: 100%;
+	text-align: right;
+	direction: rtl;
+	color: rgb(224, 224, 224);
+	font-size: xx-small;
+	padding: 0;
+
+	white-space: nowrap; 
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .item-title-box {
 	position: absolute;
 	top: 8px;
@@ -172,7 +198,6 @@ h2 {
 }
 
 .item-title {
-	text-align: left;
 	height: 1lh;
 	font-weight: bold;
 	color: white;
