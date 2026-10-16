@@ -1,6 +1,6 @@
 from .interface import previewEffect, setTimeout, setView, queryPID, stopServer, startServer, checkStatus, removeEffect, clearEffects, galleryFromFolder
 from .effect import ParticleEffect
-from .spritesheet import SpriteSheet, SpriteAtlas, normalizeImageFrames, FramesType, FramesConvertible, ImageConvertible, imageAsPNGBytes, numpyAsImage
+from .spritesheet import SpriteSheet, normalizeImageFrames, FramesType, FramesConvertible, ImageConvertible, imageAsPNGBytes, numpyAsImage
 from .utils import serializePretty, sort_effect, indexFolder
 import types
 from .particle import (

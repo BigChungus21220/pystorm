@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Self, Never, Any
 from .utils import processMolang, sort_effect
 from collections import defaultdict, deque
-from .molang_types import Number
+from .common_types import Number
 
 class JSONContributions:
     def __init__(self, root: str | None = None) -> None:

@@ -1,5 +1,5 @@
 from .common import JSONContributor, JSONContributions
-from .molang_types import MolangValue, MolangNumber, MolangVector3, Number, MolangVector2, Color
+from .common_types import MolangValue, MolangNumber, MolangVector3, Number, MolangVector2, Color, Vector2
 from abc import ABC
 from typing import Literal
 from dataclasses import dataclass, field
@@ -211,7 +211,7 @@ class ParticleTexture(JSONContributor):
     """Descriptor for the particle's texture."""
     texture: str
     """Texture resource path. Eg: `textures/particle/particles`"""
-    textureSize: tuple[int, int]
+    textureSize: Vector2
     """Size of the texture in pixels."""
     uv: MolangVector2
     """Top left corner of first frame in pixels if `animation != None`, evaluated once. Otherwise the top left corner of the uv, evaluated per frame."""

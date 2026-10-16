@@ -1,5 +1,5 @@
 from .common import JSONContributor, JSONContributions
-from .molang_types import MolangValue, MolangInt, MolangNumber, MolangVector3, Molang
+from .common_types import MolangValue, MolangInt, MolangNumber, MolangVector3, Molang
 from abc import ABC
 from typing import Literal
 from dataclasses import dataclass

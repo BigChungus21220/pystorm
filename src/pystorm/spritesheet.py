@@ -2,9 +2,9 @@ import aseprite_reader
 import io
 from pathlib import Path
 from PIL import Image, ImageSequence
-from .molang_types import Number
+from .common_types import Number, Vector2, Array2
 from .particle import ParticleTexture, UVAnimationFPS, UVAnimationLifetime, ParticleAppearance
-from typing import Literal, Any, Callable, Self
+from typing import Literal, Any, Callable, Self, cast
 import numpy as np
 from dataclasses import dataclass
 from collections.abc import Buffer, Sequence
@@ -154,16 +154,16 @@ class SpriteSheet:
     
     frames: FramesType
     """Frames of the animation. Can be safely modified"""
-    uvStart: tuple[int, int] = (0,0)
+    uvStart: Vector2 = (0,0)
     """The top left corner of the first frame. Do Not Modify"""
     tileDirection: Orientation = "horizontal"
     """How to tile frames of the animation"""
-    _texture_size: tuple[int, int] | None = None
+    _texture_size: Vector2 | None = None
     
     @property
-    def uvSize(self) -> tuple[int, int]:
+    def uvSize(self) -> Array2:
         """Size of each frame"""
-        return self.frames.shape[1:3]
+        return np.array(self.frames.shape[1:3], dtype=np.floating) # type: ignore
     
     @property
     def frameCount(self) -> int:
@@ -171,17 +171,19 @@ class SpriteSheet:
         return self.frames.shape[0]
     
     @property
-    def uvStep(self):
+    def uvStep(self) -> Array2:
         """Pixels to step each frame"""
-        return (self.uvSize[0], 0) if self.tileDirection == "horizontal" else (0, self.uvSize[1])
+        step = self.uvSize.copy()
+        step[int(self.tileDirection != "horizontal")] = 0
+        return np.array(step, dtype=np.floating) # type: ignore
     
     @property
-    def textureSize(self) -> tuple[int, int]:
+    def textureSize(self) -> Array2:
         """Size of this animation on the texture"""
         if self._texture_size is None:
-            return (self.uvSize[0] + self.uvStep[0]*(self.frameCount - 1), self.uvSize[1] + self.uvStep[1]*(self.frameCount - 1))
+            return self.uvSize + self.uvStep*(self.frameCount - 1) # type: ignore
         else:
-            return self._texture_size
+            return np.array(self._texture_size, dtype=np.floating) # type: ignore
     
     @property
     def channels(self) -> int:
@@ -189,9 +191,9 @@ class SpriteSheet:
         return self.frames.shape[3]
     
     @property
-    def halfSize(self) -> tuple[float, float]:
+    def halfSize(self) -> Array2:
         """The half dimensions of the particle to match Minecraft's pixel size. Use directly with :method:`ParticleAppearance`."""
-        return (self.uvSize[0]/32.0, self.uvSize[1]/32.0)
+        return self.uvSize/32.0 # type: ignore
     
     @classmethod
     def fromFrames(cls, frames: FramesConvertible, tileDirection: Orientation = "horizontal"):
@@ -205,7 +207,7 @@ class SpriteSheet:
         return cls(frames, (0,0), tileDirection)
         
     @classmethod
-    def fromImage(cls, image: ImageConvertible, uvSize: tuple[int, int], frameCount: int, uvStart: tuple[int, int] = (0,0), tileDirection: Orientation = "horizontal"):
+    def fromImage(cls, image: ImageConvertible, uvSize: Vector2, frameCount: int, uvStart: Vector2 = (0,0), tileDirection: Orientation = "horizontal"):
         """Constructs a spritesheet from a spritesheet image
 
         Args:
@@ -219,7 +221,7 @@ class SpriteSheet:
         arr = normalizeImageFrames(image) # 1, w, h, c
         if arr.shape[0] != 1: raise ValueError("Image contains multiple layers / frames")
                 
-        tw, th = uvSize
+        tw, th = int(uvSize[0]), int(uvSize[1])
         c = arr.shape[3]
         
         if tileDirection == "horizontal":
