@@ -37,10 +37,10 @@ def indexFolder(folder: Path | str, max_distance: int | None = None, search_refe
     Only searches for `.json` and `.png`. `O(nm)`, where `n` is number of valid particle files, and `m` is number of png files.
 
     Args:
-        folder (Path | str): Folder path to search
+        folder: Folder path to search
         
     Returns:
-        (list[tuple[Path, Path]]): Particle path, texture path pairs
+       Particle path, texture path pairs
     """
     
     if isinstance(folder, str):

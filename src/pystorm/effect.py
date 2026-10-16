@@ -42,7 +42,7 @@ class ParticleEffect:
         json = self.asJSON()
         return serializePretty(json)
     
-    def saveAs(self, particle_path: Path):
+    def saveAs(self, particle_path: Path|str):
         """Saves this particle's json to a file."""
         with open(particle_path, "w") as file:
             file.write(self.asStr())

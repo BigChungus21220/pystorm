@@ -104,7 +104,7 @@ class ParticleTranslationDynamic(ParticleTranslation):
         
         contrib = JSONContributions("particle_effect#components#minecraft:particle_motion_dynamic")
         contrib.contribute_or_default("linear_acceleration", self.acceleration, (0, 0, 0))
-        contrib.contribute_or_default("linear_drag_coefficent", self.drag, 0)
+        contrib.contribute_or_default("linear_drag_coefficient", self.drag, 0)
         
         contrib_shape = JSONContributions("particle_effect#components")
         contrib_shape.contribute_or_default("minecraft:emitter_shape_disk?direction", self.direction, "outwards")

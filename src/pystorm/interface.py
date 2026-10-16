@@ -39,10 +39,10 @@ def startServer(timeout: float | None | Literal["default"] = None, port = PORT) 
     """Starts the server if it isn't up
     
     Args:
-        timeout (float | None): Optional timeout (seconds), where the server will shutdown if it is unused for that time.
+        timeout: Optional timeout (seconds), where the server will shutdown if it is unused for that time.
         
     Returns:
-        (bool, str, int, int): Status, message, base url, PID
+       Status, message, base url, PID
     """
     if checkStatus(port): return (True, f"Server up at {base_url(port)}", base_url(port))
     
@@ -81,7 +81,7 @@ def stopServer(port = PORT) -> tuple[bool, str]:
     """Stops the server if it is running
         
     Returns:
-        (bool, str): Status, message
+       Status, message
     """
     if checkStatus(port):
         sendReq(
@@ -95,7 +95,7 @@ def stopServer(port = PORT) -> tuple[bool, str]:
 def setTimeout(timeout: float | None, port = PORT) -> tuple[bool, str]:
     """Sets the timeout (seconds), where the server will shutdown if unused for that amount of time.
     Returns:
-        (bool, str): Status, message
+       Status, message
     """
     if timeout is None:
         timeout = 1000000
@@ -116,7 +116,7 @@ def setView(identifier: str, port = PORT) -> tuple[bool, str]:
     """Sets the current file to preview. Accepts a minecraft identifier (`namespace:identifier`)
             
     Returns:
-        (bool, str): Status, message
+       Status, message
     """
     identifier = identifier.replace(":", "~")
     if checkStatus(port):
@@ -136,7 +136,7 @@ def clearEffects(port = PORT) -> tuple[bool, str]:
     """Clears all effects from the server and clients.
         
     Returns:
-        (bool, str): Status, message
+       Status, message
     """
     if checkStatus(port):
         try:
@@ -154,7 +154,7 @@ def removeEffect(identifier: str, port = PORT) -> tuple[bool, str]:
     """Removes an effect from the server and client
         
     Returns:
-        (bool, str): Status, message
+       Status, message
     """
     identifier = identifier.replace(":", "~")
     if checkStatus(port):
@@ -174,15 +174,15 @@ def previewEffect(particle: dict, texture: bytes, change_view: bool = True, star
     """Previews a particle effect on the local server
 
     Args:
-        particle (dict): The particle json to show
-        texture (bytes): The texture to use
-        change_view (bool, optional): Whether the view should be updated to this particle with this request. Defaults to True.
-        start_server (bool, optional): Whether to start the server if it is down. Defaults to True.
-        additional_data (dict | None): Additional data which may be used by the client.
+        particle: The particle json to show
+        texture: The texture to use
+        change_view: Whether the view should be updated to this particle with this request. Defaults to True.
+        start_server: Whether to start the server if it is down. Defaults to True.
+        additional_data: Additional data which may be used by the client.
         
     
     Returns:
-        (bool, str): Status, message
+       Status, message
     """
     try:
         name: str = particle.get("particle_effect",{}).get("description",{}).get("identifier")
@@ -244,7 +244,7 @@ def queryPID(port = PORT) -> tuple[bool, str, int | None]:
     """Returns the process id of the server process
     
     Returns:
-        (bool, str, int | None): Status, message, pid or None
+       Status, message, pid or None
     """
     if checkStatus(port):
         try:
@@ -262,8 +262,8 @@ def galleryFromFolder(folder: Path | str, search_referenced: bool = True, port=P
     """Attempts to load particles from a folder to the gallery.
 
     Args:
-        folder (Path | str): Folder to search.
-        search_referenced (bool): Whether to take into account `decription.basic_render_parameters.texture` when searching for textures.
+        folder: Folder to search.
+        search_referenced: Whether to take into account `decription.basic_render_parameters.texture` when searching for textures.
     """
     
     loaded = 0

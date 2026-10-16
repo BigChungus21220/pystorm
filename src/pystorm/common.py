@@ -9,7 +9,7 @@ class JSONContributions:
         """JSON contributions starting from `root`. Eg: `contributeJson("name", ...)` with `root = 'path'` contributes `path#name`
 
         Args:
-            root (str | None, optional): Root json path. Defaults to None.
+            root: Root json path. Defaults to None.
         """
         self.root = root
         self.contributions: dict[str, Any] = {}
@@ -18,8 +18,8 @@ class JSONContributions:
         """Contributes a value if it is not `None`
         
         Args:
-            path (str): Where to put value. Formatted as `key1#key2?#key3`, where ? means the value is only contributed if `key1#key2` has another contribution under it.
-            value (Any): value to contribute at `path`
+            path: Where to put value. Formatted as `key1#key2?#key3`, where ? means the value is only contributed if `key1#key2` has another contribution under it.
+            value: value to contribute at `path`
         """
         if value is not None:
             if isinstance(value, str):
@@ -34,9 +34,9 @@ class JSONContributions:
         """Contributes a value only if it is not the default value and it isn't `None`
         
         Args:
-            path (str): Where to put value. Formatted as `key1#key2?#key3`, where ? means the value is only contributed if `key1#key2` has another contribution under it.
-            value (Any): value to contribute at `path`
-            defaultValue (Any): value to compare against to check if contribution needs to be made
+            path: Where to put value. Formatted as `key1#key2?#key3`, where ? means the value is only contributed if `key1#key2` has another contribution under it.
+            value: value to contribute at `path`
+            defaultValue: value to compare against to check if contribution needs to be made
         """
         if value != defaultValue:
             if isinstance(value, str):

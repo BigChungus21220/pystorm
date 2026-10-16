@@ -24,3 +24,8 @@
      - [ ] Bonus points for adding a preview
  - [ ] Regolith integration
      - [ ] Auto run generators
+
+
+bugs
+ - no preview rendering
+ - loading from files doesn't send a gallery update ...anymore?

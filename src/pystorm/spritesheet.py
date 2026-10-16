@@ -56,11 +56,11 @@ def normalizeImageFrames(data: FramesConvertible, float_max_value: float = 1.0) 
     Converts a file path, image bytes, a numpy array to a numpy array of frames, or a list of things convertible to single frames to a numpy array of frames.
 
     Args:
-        data (framesConvertible):
-        float_max_value (float, optional): The maximum value use when mapping floats to uint8. Defaults to 1.0.
+        data: A path, buffer, bytes, or numpy array
+        float_max_value: The maximum value use when mapping floats to uint8. Defaults to 1.0.
 
     Returns:
-        framesType: A `frameCount x width x height x channels` array. **Watch out for width / height ordering conventions when using.**
+        A `frameCount x width x height x channels` array. **Watch out for width / height ordering conventions when using.**
     """
 
     if isinstance(data, Path) or isinstance(data, str):
@@ -190,11 +190,7 @@ class SpriteSheet:
     
     @property
     def halfSize(self) -> tuple[float, float]:
-        """The half dimensions of the particle to match Minecraft's pixel size. Use directly with :method:`ParticleAppearance`.
-
-        Returns:
-            tuple[float, float]:
-        """
+        """The half dimensions of the particle to match Minecraft's pixel size. Use directly with :method:`ParticleAppearance`."""
         return (self.uvSize[0]/32.0, self.uvSize[1]/32.0)
     
     @classmethod
@@ -202,22 +198,22 @@ class SpriteSheet:
         """Constructs a spritesheet from frames
 
         Args:
-            frames (framesConvertible):
-            tileDirection (Orientation], optional): Direction to layout frames on the spritesheet. Defaults to "horizontal".
+            frames:
+            tileDirection: Direction to layout frames on the spritesheet. Defaults to "horizontal".
         """
         frames = normalizeImageFrames(frames)
         return cls(frames, (0,0), tileDirection)
         
     @classmethod
-    def fromImage(cls, image: ImageConvertible, uvSize: tuple[int, int], frameCount: int, tileDirection: Orientation = "horizontal"):
+    def fromImage(cls, image: ImageConvertible, uvSize: tuple[int, int], frameCount: int, uvStart: tuple[int, int] = (0,0), tileDirection: Orientation = "horizontal"):
         """Constructs a spritesheet from a spritesheet image
 
         Args:
-            image (imageConvertible):
-            uvStart (tuple[int, int]): Top left corner of first frame
-            uvSize (tuple[int, int]): Size of each frame
-            frameCount (int): Number of frames
-            tileDirection (Orientation], optional): Direction to layout frames on the spritesheet. Defaults to "horizontal"
+            image:
+            uvSize: Size of each frame
+            frameCount: Number of frames
+            uvStart: Top left corner of first frame. Defaults to (0,0)
+            tileDirection: Direction to layout frames on the spritesheet. Defaults to "horizontal"
         """
         
         arr = normalizeImageFrames(image) # 1, w, h, c
@@ -234,15 +230,15 @@ class SpriteSheet:
             strip = arr[0, 0 : tw, 0 : th * frameCount, :]
             frames = strip.reshape((tw, frameCount, th, c)).transpose((1,0,2,3)).copy()
         
-        return cls(frames, (0,0), tileDirection)
+        return cls(frames, uvStart, tileDirection)
     
     @classmethod
     def fromASE(cls, ase: bytes | Path | str, tileDirection: Orientation = "horizontal"):
         """Constructs a spritesheet from an Aseprite file
 
         Args:
-            ase (bytes | Path | str): Aseprite file bytes or path
-            tileDirection (Orientation, optional): Direction to layout frames on the spritesheet. Defaults to "horizontal".
+            ase: Aseprite file bytes or path
+            tileDirection: Direction to layout frames on the spritesheet. Defaults to "horizontal".
         """
         if isinstance(ase, Path) or isinstance(ase, str):
             with open(ase, "rb") as file:
@@ -280,7 +276,7 @@ class SpriteSheet:
         """Saves the spritesheet as a single texture. **Will be invalid after calling SpriteAtlas.texture() with this spritesheet in the atlas**
         
         Args:
-            path (Path | str): The file to save this texture to.
+            path: The file to save this texture to.
         """
         numpyAsImage(self.texture()).save(path)
     
@@ -288,9 +284,9 @@ class SpriteSheet:
         """The texture descriptor for a particle effect whose animation stretches to it's lifetime
 
         Args:
-            path (str): The path to where this texture will be stored in the resource pack. Eg: `textures/particle/particles`
-            fps (Number): Frames per second of the animation
-            loop: (bool, optional): Whether the animation loops to the start. Defaults to False.
+            path: The path to where this texture will be stored in the resource pack. Eg: `textures/particle/particles`
+            fps: Frames per second of the animation
+            loop:: Whether the animation loops to the start. Defaults to False.
         """
         return ParticleTexture(
             texture = path,
@@ -309,7 +305,7 @@ class SpriteSheet:
         """The texture descriptor for a particle effect whose animation stretches to it's lifetime
 
         Args:
-            path (str): The path to where this texture will be stored in the resource pack. Eg: `textures/particle/particles`
+            path: The path to where this texture will be stored in the resource pack. Eg: `textures/particle/particles`
         """
         return ParticleTexture(
             texture = path,
@@ -326,7 +322,7 @@ class SpriteSheet:
         """The texture descriptor for a particle effect with a static texture
 
         Args:
-            path (str): The path to where this texture will be stored in the resource pack. Eg: `textures/particle/particles`
+            path: The path to where this texture will be stored in the resource pack. Eg: `textures/particle/particles`
         """
         return ParticleTexture(
             texture = path,
@@ -334,68 +330,3 @@ class SpriteSheet:
             uv = self.uvStart,
             uvSize = self.uvSize
         )
-        
-class SpriteAtlas:
-    """
-    A collection of spritesheets on the same texture.
-    All spritesheets must have the same orientation.
-    **IMPORTANT: call SpriteAtlas.texture() before generating particle**
-    """
-    
-    sprites: list[SpriteSheet]
-    """Safe to append to"""
-    
-    def __init__(self, sprites: list[SpriteSheet] = [], textureSize: tuple[int, int] | None = None):
-        """
-        **IMPORTANT: call SpriteAtlas.texture() before generating particle**
-        Args:
-            sprites (list[SpriteSheet], optional): List of spritesheets to place on this atlas. Defaults to [].
-            textureSize (tuple[int, int] | None, optional): A texture size to use. An error is thrown if your texture won't fit. Defaults to None.
-        """
-        self.sprites = sprites
-        self.textureSize = textureSize
-    
-    def texture(self):
-        """Gets the texture as a (w, h, c) np array. **IMPORTANT: call before generating particle**"""
-        if len(self.sprites) == 0: raise ValueError("No spritesheets added to atlas")
-        
-        H = self.sprites[0].tileDirection == "horizontal"
-        
-        w = 0
-        h = 0
-        c = 1
-        for sprite in self.sprites:
-            if H:
-                w = max(w, sprite.textureSize[0])
-                h += sprite.textureSize[1]
-            else:
-                w += sprite.textureSize[0]
-                h = max(h, sprite.textureSize[1])
-            c = max(c, sprite.channels)
-        
-        if self.textureSize is not None: 
-            if w > self.textureSize[0] or h > self.textureSize[1]:
-                raise ValueError(f"Spritesheets do not fit on specified texture size")
-            w = self.textureSize[0]
-            h = self.textureSize[1]
-        
-        texture = np.zeros((w, h, c), dtype=np.uint8)
-        pos = 0
-        for sprite in self.sprites:
-            sprite.uvStart = (0, pos) if H else (pos, 0)
-            ox, oy = sprite.uvStart
-            sx, sy = sprite.textureSize
-            texture[ox:ox + sx, oy:oy + sy, :] = sprite.texture()
-            
-            sprite._texture_size = (w, h)
-            pos += sy if H else sx
-            
-        return texture
-
-    def pngBytes(self) -> bytes:
-        """Returns a the bytes of the png for the texture"""
-        return imageAsPNGBytes(numpyAsImage(self.texture()))
-
-    def saveImage(self, path: Path | str):
-        """Saves the atlas to a file"""
-        numpyAsImage(self.texture()).save(path)
