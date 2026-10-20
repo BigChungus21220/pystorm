@@ -166,11 +166,16 @@ class Handler(SimpleHTTPRequestHandler):
             
             if is_particle:
                 if particles.get(file_name) != data:
+                    print(f"sending particle update on {file_name}")
                     update = True
                 
                 particles[file_name] = data
                 if file_name not in additional:
                     additional[file_name] = "{}".encode('utf-8')
+                    notify_clients("file_update", {
+                        "effect": file_name,
+                        "type": "additional"
+                    })
                 
             elif is_additional:
                 if file_name in particles and additional.get(file_name) != data:

@@ -3,6 +3,23 @@ from typing import Self, Never, Any
 from .utils import processMolang, sort_effect
 from collections import defaultdict, deque
 from .common_types import Number
+import numpy as np
+import numbers
+
+def normalizeValue(value: Any):
+    if isinstance(value, str):
+        value = processMolang(value)
+        
+    if isinstance(value, (numbers.Real)):
+        value = float(value)
+        
+    if isinstance(value, np.ndarray):
+        value = [normalizeValue(v) for v in value.tolist()]
+        
+    if isinstance(value, tuple):
+        value = tuple(normalizeValue(v) for v in value)
+        
+    return value
 
 class JSONContributions:
     def __init__(self, root: str | None = None) -> None:
@@ -22,8 +39,7 @@ class JSONContributions:
             value: value to contribute at `path`
         """
         if value is not None:
-            if isinstance(value, str):
-                value = processMolang(value)
+            value = normalizeValue(value)
                 
             if self.root is not None:
                 path = self.root + "#" + path
@@ -39,8 +55,7 @@ class JSONContributions:
             defaultValue: value to compare against to check if contribution needs to be made
         """
         if value != defaultValue:
-            if isinstance(value, str):
-                value = processMolang(value)
+            value = normalizeValue(value)
                 
             if self.root is not None:
                 path = self.root + "#" + path
@@ -50,8 +65,7 @@ class JSONContributions:
     def contribute_item(self, path: str, value: Any | None):
         """Specialized contribution for list items"""
         if value is not None:
-            if isinstance(value, str):
-                value = processMolang(value)
+            value = normalizeValue(value)
                 
             if self.root is not None:
                 path = self.root + "#" + path
@@ -68,8 +82,7 @@ class JSONContributions:
     def contribute_looping_item(self, path: str, id: Number, value: str | None):
         """Specialized contribution for looping events"""
         if value is not None:
-            if isinstance(value, str):
-                value = processMolang(value)
+            value = normalizeValue(value)
                 
             if self.root is not None:
                 path = self.root + "#" + path

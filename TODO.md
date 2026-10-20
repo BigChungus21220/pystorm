@@ -1,12 +1,11 @@
- - [ ] rework atlas system
  - [ ] Separate server into own process
      - [x] Allow port to be set
      - [x] Allow clearing the server particle cache
      - [x] Allow removals from the client library
      - [ ] Add access to client requests (maybe)
      - [ ] Improve gallery text truncation strategy
-     - [ ] Allow auto indexing particles in folder
-        - [ ] show source file location
+     - [x] Allow auto indexing particles in folder
+        - [x] show source file location
  - [ ] Add / update readme examples
      - basic usage
      - spritesheets & image manipulation

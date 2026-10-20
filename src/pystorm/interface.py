@@ -170,7 +170,7 @@ def removeEffect(identifier: str, port = PORT) -> tuple[bool, str]:
             return (False, f"Failed to communicate with the server: {e}")
     return (False, "Server is down")
 
-def previewEffect(particle: dict, texture: bytes, change_view: bool = True, start_server: bool = True, additional_data: dict | None = None, port = PORT) -> tuple[bool, str]:
+def previewEffect(particle: dict, texture: bytes, change_view: bool = False, start_server: bool = True, additional_data: dict | None = None, port = PORT) -> tuple[bool, str]:
     """Previews a particle effect on the local server
 
     Args:
@@ -234,6 +234,8 @@ def previewEffect(particle: dict, texture: bytes, change_view: bool = True, star
                 method = 'POST',
                 content_type = 'application/x-www-form-urlencoded'
             )
+            
+        print(f"Previewing effect {name} on {base_url(port)}/")
 
         return (True, f"Previewing effect {name} on {base_url(port)}/")
 

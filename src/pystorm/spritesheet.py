@@ -6,7 +6,7 @@ from .common_types import Number, Vector2, Array2
 from .particle import ParticleTexture, UVAnimationFPS, UVAnimationLifetime, ParticleAppearance
 from typing import Literal, Any, Callable, Self, cast
 import numpy as np
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from collections.abc import Buffer, Sequence
 
 class _InMemoryPath:
@@ -48,10 +48,10 @@ class _NamedBytesIO(io.BytesIO, Buffer):
 
 type ImageConvertible = str | Path | bytes | Buffer | np.ndarray[tuple[int, int], np.dtype[Any]] | np.ndarray[tuple[int, int, int], np.dtype[Any]]
 type FramesConvertible = ImageConvertible | np.ndarray[tuple[int, int, int, int], np.dtype[Any]] | Sequence[ImageConvertible]
-type FramesType = np.ndarray[tuple[int, int, int, int], np.dtype[np.uint8]]
+type FramesType = np.ndarray[tuple[int, int, int, int], np.dtype[np.float64]]
 """`frameCount x width x height x channels` **Watch out for width / height ordering conventions when using.**"""
 
-def normalizeImageFrames(data: FramesConvertible, float_max_value: float = 1.0) -> FramesType:
+def normalizeImageFrames(data: FramesConvertible) -> FramesType:
     """
     Converts a file path, image bytes, a numpy array to a numpy array of frames, or a list of things convertible to single frames to a numpy array of frames.
 
@@ -60,7 +60,7 @@ def normalizeImageFrames(data: FramesConvertible, float_max_value: float = 1.0) 
         float_max_value: The maximum value use when mapping floats to uint8. Defaults to 1.0.
 
     Returns:
-        A `frameCount x width x height x channels` array. **Watch out for width / height ordering conventions when using.**
+        A `frameCount x width x height x channels` array of floats in `[0, 1]^3`. **Watch out for width / height ordering conventions when using.**
     """
 
     if isinstance(data, Path) or isinstance(data, str):
@@ -70,9 +70,9 @@ def normalizeImageFrames(data: FramesConvertible, float_max_value: float = 1.0) 
     if isinstance(data, np.ndarray):
         if data.ndim >= 2 and data.ndim <= 4:
             if np.issubdtype(data.dtype, np.floating):
-                arr = (data/float_max_value*255).astype(np.uint8)
+                arr = data.astype(np.float64)
             elif np.issubdtype(data.dtype, np.integer):
-                arr = (data//(np.iinfo(data.dtype).max//255)).astype(np.uint8)
+                arr = data.astype(np.float64)/np.iinfo(data.dtype).max
             else:
                 raise ValueError(f"Array dtype not compatible. Expected integer or float, got {data.dtype}")
             
@@ -103,7 +103,7 @@ def normalizeImageFrames(data: FramesConvertible, float_max_value: float = 1.0) 
             target_mode = 'RGB'
             target_channels = 3
         
-        frames = np.empty((getattr(img, "n_frames", 1), img.width, img.height, target_channels), dtype=np.uint8)
+        frames = np.empty((getattr(img, "n_frames", 1), img.width, img.height, target_channels), dtype=np.float64)
         i = 0
         for frame in ImageSequence.Iterator(img):
             converted_frame = frame.convert(target_mode)
@@ -115,7 +115,7 @@ def normalizeImageFrames(data: FramesConvertible, float_max_value: float = 1.0) 
             frames[i,:,:,:] = arr.transpose((1,0,2))
             i += 1
 
-        return frames
+        return frames.astype(np.float64)/255.0 # type: ignore
     
     elif isinstance(data, Sequence):
         frames: np.ndarray | None = None
@@ -124,18 +124,25 @@ def normalizeImageFrames(data: FramesConvertible, float_max_value: float = 1.0) 
             image = normalizeImageFrames(frame)
             if image.shape[0] != 1: raise ValueError(f"Image for frame {i} contains multiple frames")
             if frames is None:
-                frames = np.empty((len(data), image.shape[1], image.shape[2], image.shape[3]), dtype=np.uint8)
+                frames = np.empty((len(data), image.shape[1], image.shape[2], image.shape[3]), dtype=np.float64)
             else:
                 if image.shape[1:] != frames.shape[1:]: raise ValueError(f"Image sizes in sequence must match. Size of frame 0 does not match frame {i}")
             frames[i, :, :, :] = image
             i += 1
             
         if frames is None: raise ValueError(f"No frames in input")
-        return frames
+        return frames # type: ignore
     
-def numpyAsImage(texture: np.ndarray[tuple[int, int, int], np.dtype[np.uint8]]) -> Image.Image:
-    """Converts a (w, h, c) numpy array to a PIL image"""
-    return Image.fromarray(texture.transpose(1,0,2))
+def numpyAsImage(texture: np.ndarray[tuple[int, int, int], np.dtype[Any]]) -> Image.Image:
+    """Converts a (w, h, c) numpy array to a 8 bit PIL image"""
+    
+    if np.issubdtype(texture.dtype, np.floating):
+        return Image.fromarray((texture.transpose(1,0,2)*255).astype(np.uint8))
+    elif np.issubdtype(texture.dtype, np.integer):
+        return Image.fromarray((texture.transpose(1,0,2)/np.iinfo(texture.dtype).max*255.0).astype(np.uint8))
+    else:
+        raise TypeError(f"Unsupported image datatype: {texture.dtype}")
+        
 
 def imageAsPNGBytes(image: Image.Image) -> bytes:
     """Converts a PIL image to png bytes"""
@@ -144,7 +151,7 @@ def imageAsPNGBytes(image: Image.Image) -> bytes:
     return byte_arr.getvalue()
 
 type Orientation = Literal["horizontal", "vertical"]
-
+type IntArray = np.ndarray[tuple[int], np.dtype[np.integer]]
 
 @dataclass
 class SpriteSheet:
@@ -154,16 +161,16 @@ class SpriteSheet:
     
     frames: FramesType
     """Frames of the animation. Can be safely modified"""
-    uvStart: Vector2 = (0,0)
-    """The top left corner of the first frame. Do Not Modify"""
+    uvStart: IntArray = field(default_factory=np.zeros(2, dtype=int)) # type: ignore
+    """The top left corner of the first frame."""
     tileDirection: Orientation = "horizontal"
     """How to tile frames of the animation"""
-    _texture_size: Vector2 | None = None
+    _texture_size: IntArray | None = None
     
     @property
-    def uvSize(self) -> Array2:
+    def uvSize(self) -> IntArray:
         """Size of each frame"""
-        return np.array(self.frames.shape[1:3], dtype=np.floating) # type: ignore
+        return np.array(self.frames.shape[1:3], dtype=int) # type: ignore
     
     @property
     def frameCount(self) -> int:
@@ -171,19 +178,19 @@ class SpriteSheet:
         return self.frames.shape[0]
     
     @property
-    def uvStep(self) -> Array2:
+    def uvStep(self) -> IntArray:
         """Pixels to step each frame"""
-        step = self.uvSize.copy()
-        step[int(self.tileDirection != "horizontal")] = 0
-        return np.array(step, dtype=np.floating) # type: ignore
+        step = np.zeros_like(self.uvSize)
+        step[int(self.tileDirection != "horizontal")] = self.uvSize[0]
+        return step # type: ignore
     
     @property
-    def textureSize(self) -> Array2:
+    def textureSize(self) -> IntArray:
         """Size of this animation on the texture"""
         if self._texture_size is None:
-            return self.uvSize + self.uvStep*(self.frameCount - 1) # type: ignore
+            return self.uvStart + self.uvSize + self.uvStep*(self.frameCount - 1) # type: ignore
         else:
-            return np.array(self._texture_size, dtype=np.floating) # type: ignore
+            return self.uvStart + self._texture_size # type: ignore
     
     @property
     def channels(self) -> int:
@@ -204,7 +211,7 @@ class SpriteSheet:
             tileDirection: Direction to layout frames on the spritesheet. Defaults to "horizontal".
         """
         frames = normalizeImageFrames(frames)
-        return cls(frames, (0,0), tileDirection)
+        return cls(frames, np.zeros(2, dtype=int), tileDirection)
         
     @classmethod
     def fromImage(cls, image: ImageConvertible, uvSize: Vector2, frameCount: int, uvStart: Vector2 = (0,0), tileDirection: Orientation = "horizontal"):
@@ -220,7 +227,9 @@ class SpriteSheet:
         
         arr = normalizeImageFrames(image) # 1, w, h, c
         if arr.shape[0] != 1: raise ValueError("Image contains multiple layers / frames")
-                
+        
+        arr = arr[:, uvStart[0]:, uvStart[1]:, :]
+        
         tw, th = int(uvSize[0]), int(uvSize[1])
         c = arr.shape[3]
         
@@ -232,7 +241,7 @@ class SpriteSheet:
             strip = arr[0, 0 : tw, 0 : th * frameCount, :]
             frames = strip.reshape((tw, frameCount, th, c)).transpose((1,0,2,3)).copy()
         
-        return cls(frames, uvStart, tileDirection)
+        return cls(frames, cast(np.ndarray[tuple[int], np.dtype[np.integer]], np.array(uvStart, dtype=int)), tileDirection)
     
     @classmethod
     def fromASE(cls, ase: bytes | Path | str, tileDirection: Orientation = "horizontal"):
@@ -265,17 +274,19 @@ class SpriteSheet:
         self.frames = callback(self.frames) # type: ignore
         return self
     
-    def texture(self):
-        """Texture as a `(f*w, h, c)` or `(w, f*h, c)` numpy array (depending on `tileDirection`)"""
-        size = self.textureSize
-        return self.frames.reshape((size[0], size[1], self.channels))
+    def texture(self) -> np.ndarray[tuple[int, int, int], np.dtype[np.uint8]]:
+        """Texture as a `(f*w, h, c)` or `(w, f*h, c)` uint8 numpy array (depending on `tileDirection`)"""
+        img = np.zeros((self.textureSize[0], self.textureSize[1], self.channels), dtype=np.uint8)
+        size = self.textureSize - self.uvStart
+        img[self.uvStart[0]:, self.uvStart[1]:, :] = (self.frames.reshape((size[0], size[1], self.channels))*255).astype(np.uint8)
+        return img # type: ignore
         
     def pngBytes(self):
         """Returns a the bytes of the png for the texture"""
         return imageAsPNGBytes(numpyAsImage(self.texture()))
     
     def saveImage(self, path: Path | str):
-        """Saves the spritesheet as a single texture. **Will be invalid after calling SpriteAtlas.texture() with this spritesheet in the atlas**
+        """Saves the spritesheet as a single texture.
         
         Args:
             path: The file to save this texture to.
@@ -292,9 +303,9 @@ class SpriteSheet:
         """
         return ParticleTexture(
             texture = path,
-            textureSize = self.textureSize,
-            uv = self.uvStart,
-            uvSize = self.uvSize,
+            textureSize = self.textureSize.astype(np.floating),
+            uv = self.uvStart.astype(np.floating),
+            uvSize = self.uvSize.astype(np.floating),
             animation = UVAnimationFPS(
                 uvStep = (self.uvSize[0], 0),
                 frameCount= self.frameCount,
@@ -311,9 +322,9 @@ class SpriteSheet:
         """
         return ParticleTexture(
             texture = path,
-            textureSize = self.textureSize,
-            uv = self.uvStart,
-            uvSize = self.uvSize,
+            textureSize = self.textureSize.astype(np.floating),
+            uv = self.uvStart.astype(np.floating),
+            uvSize = self.uvSize.astype(np.floating),
             animation = UVAnimationLifetime(
                 uvStep = (self.uvSize[0], 0),
                 frameCount= self.frameCount
@@ -328,7 +339,7 @@ class SpriteSheet:
         """
         return ParticleTexture(
             texture = path,
-            textureSize = self.textureSize,
-            uv = self.uvStart,
-            uvSize = self.uvSize
+            textureSize = self.textureSize.astype(np.floating),
+            uv = self.uvStart.astype(np.floating),
+            uvSize = self.uvSize.astype(np.floating)
         )

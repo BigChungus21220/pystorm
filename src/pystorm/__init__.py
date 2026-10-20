@@ -2,6 +2,7 @@ from .interface import previewEffect, setTimeout, setView, queryPID, stopServer,
 from .effect import ParticleEffect
 from .spritesheet import SpriteSheet, normalizeImageFrames, FramesType, FramesConvertible, ImageConvertible, imageAsPNGBytes, numpyAsImage
 from .utils import serializePretty, sort_effect, indexFolder
+from .texture_utils import resizeImage
 import types
 from .particle import (
     Particle, 
